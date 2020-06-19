@@ -1,0 +1,25 @@
+{
+    "name": "vsc-bigquery",
+    "displayName": "vsc-bigquery",
+    "description": "BigQuery Extension",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.46.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "BigQuery",
+            "aliases": ["BigQuery", "sql"],
+            "extensions": [".sql"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "BigQuery",
+            "scopeName": "source.bigquery",
+            "path": "./syntaxes/sql.tmLanguage.json"
+        }]
+    }
+}
