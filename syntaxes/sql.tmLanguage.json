@@ -12,10 +12,16 @@
 			"include": "#keywords"
 		},
 		{
+			"include": "#function_names"
+		},
+		{
 			"include": "#logical_operators"
 		},
 		{
 			"include": "#comparison_operators"
+		},
+		{
+			"include": "#punctuation"
 		}
 	],
 	"repository": {
@@ -44,15 +50,42 @@
 				}
 			]
 		},
+		"punctuation": {
+			"patterns": [
+				{
+					"match": "(\\()",
+					"captures": {
+						"1": {
+							"name": "punctuation.begin.bracket.round.sql"
+						}
+					}
+				},
+				{
+					"match": "(\\))",
+					"captures": {
+						"1": {
+							"name": "punctuation.end.bracket.round.sql"
+						}
+					}
+				}
+			]
+		},
 		"function_names": {
 			"patterns": [
-
+				{
+					"match": "(?i:\\b(any_value|array_agg|array_concat_agg|avg|bit_and|bit_or|bit_xor|count|countif|logical_and|logical_or|max|min|string_agg|sum|corr|covar_pop|covar_samp|stddev_pop|stddev_samp|stddev|var_pop|var_samp|variance|approx_count_distinct|approx_quantiles|approx_top_count|approx_top_sum|hll_count.init|hll_count.merge|hll_count.merge_partial|hll_count.extract|rank|dense_rank|percent_rank|cume_dist|ntile|row_number|bit_count|abs|sign|is_inf|is_nan|ieee_divide|rand|sqrt|pow|power|exp|ln|log|greatest|least|div|safe_divide|safe_multiply|safe_negate|safe_add|safe_subtract|mod|round|trunc|ceil|ceiling|floor|cos|cosh|acos|acosh|sin|sinh|asin|asinh|tan|tanh|atan|atanh|range_bucket|first_value|last_value|nth_value|lead|lag|percentile_cont|percentile_disc|farm_fingerprint|byte_length|char_length|character_length|code_points_to_bytes|code_points_to_string|concat|ends_with|format|from_hex|length|lpad|lower|ltrim|normalize|normalize_and_casefold|regexp_contains|regexp_extract|regexp_extract_all|regexp_replace|replace|repeat|reverse|rpad|rtrim|safe_convert_bytes_to_string|split|starts_with|strpos|substr|to_code_points|to_hex|trim|upper|to_json_string|array|array_concat|array_length|array_to_string|generate_array|generate_date_array|generate_timestamp_array|array_reverse|current_date|extract|date|date_add|date_sub|date_diff|date_trunc|date_from_unix_date|format_date|parse_date|unix_date|current_datetime|datetime|datetime_add|datetime_sub|datetime_diff|datetime_trunc|format_datetime|parse_datetime|current_time|time|time_add|time_sub|time_diff|time_trunc|format_time|parse_time|current_timestamp|extract|string|timestamp|timestamp_add|timestamp_sub|timestamp_diff|timestamp_trunc|format_timestamp|parse_timestamp|timestamp_seconds|timestamp_millis|timestamp_micros|unix_seconds|unix_millis|unix_micros|st_geogpoint|st_makeline|st_makepolygon|st_makepolygonoriented|st_geogfromgeojson|st_geogfromtext|st_geogfromwkb|st_geogpointfromgeohash|st_asgeojson|st_astext|st_geohash|st_asbinary|st_boundary|st_centroid|st_closestpoint|st_difference|st_intersection|st_snaptogrid|st_union|st_x|st_y|st_contains|st_coveredby|st_covers|st_disjoint|st_dwithin|st_equals|st_intersects|st_intersectsbox|st_touches|st_within|st_isempty|st_iscollection|st_dimension|st_numpoints|st_area|st_distance|st_length|st_maxdistance|st_perimeter|st_union_agg|st_centroid_agg|session_user|generate_uuid|net.ip_from_string|net.safe_ip_from_string|net.ip_to_string|net.ip_net_mask|net.ip_trunc|net.host|net.public_suffix|net.reg_domain|error)\\b)",
+					"captures": {
+						"1": {
+							"name": "keyword.function.sql"
+						}
+					}
+				}
 			]
 		},
 		"keywords": {
 			"patterns": [
 				{
-					"match": "(?i:\\b(create (or replace )?table( if not exists)?|partition by|cluster by|options|delete|update|merge|insert|with|select|from|where|having|group by|window|as|(inner|cross|(full|left|right)( outer)? )?join|unnest|using|on|union( (all|distinct))?|(intersect|except)( distinct)?)\\b)",
+					"match": "(?i:\\b(all|and|any|array|as|asc|assert_rows_modified|at|between|by|case|cast|collate|contains|create|cross|cube|current|default|define|desc|distinct|else|end|enum|escape|except|exclude|exists|extract|false|fetch|following|for|from|full|group|grouping|groups|hash|having|if|ignore|in|inner|intersect|interval|into|is|join|lateral|left|like|limit|lookup|merge|natural|new|no|not|null|nulls|of|on|or|order|outer|over|partition|preceding|proto|range|recursive|respect|right|rollup|rows|select|set|some|struct|tablesample|then|to|treat|true|unbounded|union|unnest|using|when|where|window|with|within)\\b)",
 					"captures": {
 						"1": {
 							"name": "keyword.control.sql"
