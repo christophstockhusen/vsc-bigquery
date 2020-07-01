@@ -6,129 +6,19 @@
 			"include": "#comments"
 		},
 		{
-			"include": "#query_statement"
+			"include": "#strings"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#logical_operators"
+		},
+		{
+			"include": "#comparison_operators"
 		}
 	],
 	"repository": {
-		"query_statement": {
-			"patterns": [
-				{
-					"include": "#query_expr"
-				}
-			],
-			"name": "statement.query.sql"
-		},
-		"query_expr": {
-			"patterns": [
-				{
-					"include": "#select"
-				}
-			],
-			"name": "expression.query.sql"
-		},
-		"select": {
-			"patterns": [
-				{
-					"begin": "(?i:(?<=\\b)(select)(?=\\b))",
-					"beginCaptures": {
-						"1": {
-							"name": "keyword.other.sql"
-						}
-					},
-					"patterns": [
-						{
-							"include": "#select_item_list"
-
-						}
-					],
-					"end": "(?i:(?<=(\\b(from|where|group by|order by)\\b)))",
-					"endCaptures": {
-						"1": {
-							"name": "keyword.other.sql"
-						}
-					}
-				}
-			],
-			"name": "select.query.sql"
-		},
-		"select_item_list": {
-			"patterns": [
-				{
-					"begin": "\\A",
-					"patterns": [{
-						"include": "#select_item"
-					}],
-					"end": ",(.*)|\\z",
-
-					"endCaptures": {
-						"1": {
-							"patterns": [
-								{
-									"include": "#select_item_list"
-								}
-							]
-						},
-						"2": {
-							"patterns": [
-								{
-									"include": "#select_item_list"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "item.select.query.sql",
-					"match": "(.+?)",
-					"captures": {
-						"1": {
-							"patterns": [
-								{
-									"include": "#select_item"
-								}
-							]
-						}
-					}
-				}
-			]
-		},
-		"select_item": {
-			"patterns": [
-				{
-					"match": "(?i:(\\w+)\\s+(as)\\s+(\\w+)\\s+)",
-					"captures": {
-						"1": {
-							"patterns": [
-								{
-									"include": "#expression"
-								}
-							]
-						},
-						"2": {
-							"name": "keyword.other.sql"
-						},
-						"3": {
-							"name": "entity.name.sql"
-						}
-					}
-				},
-				{
-					"match": "(?i:(\\w+))",
-					"captures": {
-						"1": {
-							"patterns": [
-								{
-									"include": "#expression"
-								}
-							]
-						}
-					}
-				}
-			]
-		},
-		"expression": {
-			"name": "entity.other.sql"
-		},
 		"comments": {
 			"patterns": [
 				{
@@ -154,11 +44,44 @@
 				}
 			]
 		},
+		"function_names": {
+			"patterns": [
+
+			]
+		},
 		"keywords": {
 			"patterns": [
 				{
-					"name": "keyword.control.sql",
-					"match": "\\b(if|while|for|return)\\b"
+					"match": "(?i:\\b(create (or replace )?table( if not exists)?|partition by|cluster by|options|delete|update|merge|insert|with|select|from|where|having|group by|window|as|(inner|cross|(full|left|right)( outer)? )?join|unnest|using|on|union( (all|distinct))?|(intersect|except)( distinct)?)\\b)",
+					"captures": {
+						"1": {
+							"name": "keyword.control.sql"
+						}
+					}
+				}
+			]
+		},
+		"logical_operators": {
+			"patterns": [
+				{
+					"match": "(?i:\\b(not|and|or)\\b)",
+					"captures": {
+						"1": {
+							"name": "keyword.operator.sql"
+						}
+					}
+				}
+			]
+		},
+		"comparison_operators": {
+			"patterns": [
+				{
+					"match": "(?i:\\b(<|<=|>|>=|=|!=|<>)\\b)",
+					"captures": {
+						"1": {
+							"name": "keyword.operator.sql"
+						}
+					}
 				}
 			]
 		},
