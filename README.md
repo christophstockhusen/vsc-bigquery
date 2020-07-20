@@ -1,12 +1,21 @@
 # BigQuery for Visual Studio Code
 
+## Shortcuts
+
+| Shortcut | Effect |
+|----------|--------|
+| `CTRL-Enter` | Submit query |
+| `CTRL-Shift-Enter` | Submit region | 
+| `CTRL-Alt-Enter` | Dry run query |
+
 ## Features and Todos
 
-- [ ] Syntax Highlighting
-- [ ] Dry running query
+- [X] Syntax Highlighting
+- [X] Dry running query
 - [ ] Executing query from current window
 - [ ] Executing query from selection
-- [ ] Dataset listings
-- [ ] Table listings
+- [X] Dataset listings
+- [X] Table listings
 - [ ] Table preview
 - [ ] Query result preview
+- [ ] Query formatting

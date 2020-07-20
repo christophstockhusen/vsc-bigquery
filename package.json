@@ -1,7 +1,12 @@
 {
     "name": "vsc-bigquery",
-    "displayName": "vsc-bigquery",
+    "displayName": "BigQuery",
     "description": "BigQuery Extension",
+    "publisher": "christophstockhusen",
+    "author": {
+        "name": "Christoph Stockhusen",
+        "email": "mail@christophstockhusen.de"
+    },
     "version": "0.0.1",
     "engines": {
         "vscode": "^1.46.0"
@@ -9,17 +14,134 @@
     "categories": [
         "Programming Languages"
     ],
+    "activationEvents": [
+        "*",
+        "onLanguage:sql",
+        "onCommand:extension.dryRun",
+        "onCommand:extension.setProjectCommand",
+        "onCommand:extension.submit",
+        "onCommand:extension.submitRegion",
+        "onView:bigQueryResources"
+    ],
+    "repository": {
+        "url": "https://github.com/christophstockhusen/vcs-bigquery"
+    },
+    "main": "./out/extension.js",
     "contributes": {
-        "languages": [{
-            "id": "BigQuery",
-            "aliases": ["BigQuery", "sql"],
-            "extensions": [".sql"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "BigQuery",
-            "scopeName": "source.bigquery",
-            "path": "./syntaxes/sql.tmLanguage.json"
-        }]
+        "languages": [
+            {
+                "id": "BigQuery",
+                "aliases": [
+                    "BigQuery",
+                    "sql"
+                ],
+                "extensions": [
+                    ".sql"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "BigQuery",
+                "scopeName": "source.bigquery",
+                "path": "./syntaxes/sql.tmLanguage.json"
+            }
+        ],
+        "commands": [
+            {
+                "category": "BigQuery",
+                "title": "Dry Run",
+                "command": "extension.dryRun"
+            },
+            {
+                "category": "BigQuery",
+                "title": "Submit",
+                "command": "extension.submit"
+            },
+            {
+                "category": "BigQuery",
+                "title": "Submit Region",
+                "command": "extension.submitRegion"
+            },
+            {
+                "category": "BigQuery",
+                "title": "Set Google Cloud Project",
+                "command": "extension.setProjectCommand"
+            },
+            {
+                "category": "BigQuery",
+                "command": "bigQueryResources.refreshAllResources",
+                "title": "Refresh BigQuery Resources",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
+                }
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "extension.dryRun",
+                "key": "ctrl+alt+enter",
+                "mac": "cmd+alt+enter"
+            },
+            {
+                "when": "editorTextFocus && extension == vsc-bigquery",
+                "command": "extension.submit",
+                "key": "ctrl+enter",
+                "mac": "cmd+enter"
+            },
+            {
+                "command": "extension.submitRegion",
+                "key": "ctrl+shift+enter",
+                "mac": "cmd+shift+enter"
+            }
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "bigquery-resources",
+                    "title": "BigQuery Resources",
+                    "icon": "resources/BigQuery.png"
+                }
+            ]
+        },
+        "views": {
+            "bigquery-resources": [
+                {
+                    "id": "bigQueryResources",
+                    "name": "BigQuery Resources",
+                    "icon": "resources/BigQuery.png"
+                }
+            ]
+        },
+        "menus": {
+            "view/title": [
+                {
+                    "command": "bigQueryResources.refreshAllResources",
+                    "when": "view == bigQueryResources",
+                    "group": "navigation"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./"
+    },
+    "devDependencies": {
+        "@types/node": "^8.10.25",
+        "@types/sql-formatter": "^2.3.0",
+        "@types/vscode": "^1.47.0",
+        "tslint": "^5.16.0",
+        "typescript": "^3.9.7"
+    },
+    "dependencies": {
+        "@google-cloud/bigquery": "^5.0.1",
+        "@google-cloud/resource": "^1.2.1",
+        "google-auth-library": "^6.0.5",
+        "googleapis": "^55.0.0",
+        "sql-formatter": "git+ssh://git@github.com/christophstockhusen/sql-formatter.git#bigquery"
     }
 }
