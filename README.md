@@ -18,4 +18,4 @@
 - [X] Table listings
 - [ ] Table preview
 - [ ] Query result preview
-- [ ] Query formatting
+- [X] Query formatting
