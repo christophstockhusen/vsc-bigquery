@@ -6,7 +6,7 @@
 |----------|--------|
 | `CTRL-Enter` | Submit query |
 | `CTRL-Shift-Enter` | Submit region | 
-| `CTRL-Alt-Enter` | Dry run query |
+| `CTRL-Alt-Enter` | Submit query for dry run |
 
 ## Features and Todos
 
