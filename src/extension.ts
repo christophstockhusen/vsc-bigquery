@@ -15,8 +15,19 @@ let dryRunItem: vscode.StatusBarItem;
 let dryRunTimer: NodeJS.Timer;
 
 export function activate(context: vscode.ExtensionContext) {
-    context.subscriptions.push(vscode.commands.registerCommand('extension.dryRun', () => dryRun()));
-    context.subscriptions.push(vscode.commands.registerCommand('extension.setProjectCommand', () => setProjectCommand()));
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'extension.dryRun',
+            () => dryRun()
+        )
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'extension.setProjectCommand',
+            () => setProjectCommand()
+        )
+    );
 
     bqClient = new BigQuery();
     resourceClient = new Resource();
@@ -25,45 +36,73 @@ export function activate(context: vscode.ExtensionContext) {
     dryRunItem = createDryRunItem();
     updateStatusBarItem();
 
-    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(updateStatusBarItem));
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(updateStatusBarItem)
+    );
 
     vscode.window.onDidChangeTextEditorSelection((_) => updateDryRunTimer());
 
     const bigQueryResourceProvider = new BigQueryResourceProvider(vscode.workspace.rootPath);
 
-    vscode.window.createTreeView('bigquery.resources', {
-        treeDataProvider: bigQueryResourceProvider
-    })
+    vscode.window.createTreeView(
+        'bigquery.resources',
+        {
+            treeDataProvider: bigQueryResourceProvider
+        }
+    )
 
-    vscode.commands.registerCommand("bigQueryResources.refreshAllResources",
-        () => bigQueryResourceProvider.refreshAllResources())
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            "bigQueryResources.refreshAllResources",
+            () => bigQueryResourceProvider.refreshAllResources()
+        )
+    );
 
     const queryHistoryProvider = new QueryHistoryProvider(vscode.workspace.rootPath);
 
-    vscode.window.createTreeView('bigquery.queries', {
-        treeDataProvider: queryHistoryProvider
-    })
+    context.subscriptions.push(
+        vscode.window.createTreeView(
+            'bigquery.queries',
+            {
+                treeDataProvider: queryHistoryProvider
+            }
+        )
+    );
 
-    vscode.languages.registerDocumentFormattingEditProvider("BigQuery", {
-        provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
-            const formatter = new BigQueryFormatter();
-            
-            const unformatted = document.getText();
-            const formatted = formatter.format(unformatted);
+    context.subscriptions.push(
+        vscode.languages.registerDocumentFormattingEditProvider("BigQuery", {
+            provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
+                const formatter = new BigQueryFormatter();
 
-            const start = document.lineAt(0).range.start;
-            const end = document.lineAt(document.lineCount - 1).range.end;
-            const fullRange = new vscode.Range(start, end);
+                const unformatted = document.getText();
+                const formatted = formatter.format(unformatted);
 
-            return [
-                vscode.TextEdit.delete(fullRange),
-                vscode.TextEdit.insert(document.lineAt(0).range.start, formatted)
-            ]
-        }
-    })
+                const start = document.lineAt(0).range.start;
+                const end = document.lineAt(document.lineCount - 1).range.end;
+                const fullRange = new vscode.Range(start, end);
 
-    context.subscriptions.push(vscode.commands.registerCommand('queryHistory.edit', (query: Query) => openQuery(query)));
-    context.subscriptions.push(vscode.commands.registerCommand('queryHistory.showQueryInConsole', (query: Query) => showQueryInConsole(query)));
+                return [
+                    vscode.TextEdit.delete(fullRange),
+                    vscode.TextEdit.insert(document.lineAt(0).range.start, formatted)
+                ]
+            }
+        })
+    )
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'queryHistory.edit',
+            (query: Query) => openQuery(query)
+        )
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'queryHistory.showQueryInConsole',
+            (query: Query) => showQueryInConsole(query)
+        )
+    );
+
 }
 
 function createStatusBarItem(priority: number): vscode.StatusBarItem {
