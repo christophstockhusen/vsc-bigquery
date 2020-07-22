@@ -77,6 +77,24 @@
                     "light": "resources/light/refresh.svg",
                     "dark": "resources/dark/refresh.svg"
                 }
+            },
+            {
+                "category": "BigQuery",
+                "command": "queryHistory.edit",
+                "title": "Edit",
+                "icon": {
+                    "light": "resources/light/edit.svg",
+                    "dark": "resources/dark/edit.svg"
+                }
+            },
+            {
+                "category": "BigQuery",
+                "command": "queryHistory.showQueryInConsole",
+                "title": "Open in Console",
+                "icon": {
+                    "light": "resources/light/link-external.svg",
+                    "dark": "resources/dark/link-external.svg"
+                }
             }
         ],
         "keybindings": [
@@ -100,18 +118,21 @@
         "viewsContainers": {
             "activitybar": [
                 {
-                    "id": "bigquery-resources",
-                    "title": "BigQuery Resources",
+                    "id": "bigquery",
+                    "title": "BigQuery",
                     "icon": "resources/BigQuery.png"
                 }
             ]
         },
         "views": {
-            "bigquery-resources": [
+            "bigquery": [
                 {
-                    "id": "bigQueryResources",
-                    "name": "BigQuery Resources",
-                    "icon": "resources/BigQuery.png"
+                    "id": "bigquery.resources",
+                    "name": "Resources"
+                },
+                {
+                    "id": "bigquery.queries",
+                    "name": "Query History"
                 }
             ]
         },
@@ -119,8 +140,20 @@
             "view/title": [
                 {
                     "command": "bigQueryResources.refreshAllResources",
-                    "when": "view == bigQueryResources",
+                    "when": "view == bigquery",
                     "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "queryHistory.showQueryInConsole",
+                    "when": "view == bigquery.queries",
+                    "group": "inline"
+                },
+                {
+                    "command": "queryHistory.edit",
+                    "when": "view == bigquery.queries",
+                    "group": "inline"
                 }
             ]
         }

@@ -3,6 +3,7 @@ import { BigQuery } from '@google-cloud/bigquery';
 import { Resource } from '@google-cloud/resource';
 import { BigQueryResourceProvider } from './bigqueryResources';
 import { BigQueryFormatter } from './formatter';
+import { QueryHistoryProvider, Query } from './queryHistory';
 
 const languageId = 'BigQuery';
 let bqClient: BigQuery;
@@ -29,11 +30,19 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeTextEditorSelection((_) => updateDryRunTimer());
 
     const bigQueryResourceProvider = new BigQueryResourceProvider(vscode.workspace.rootPath);
-    vscode.window.createTreeView('bigQueryResources', {
+
+    vscode.window.createTreeView('bigquery.resources', {
         treeDataProvider: bigQueryResourceProvider
     })
+
     vscode.commands.registerCommand("bigQueryResources.refreshAllResources",
         () => bigQueryResourceProvider.refreshAllResources())
+
+    const queryHistoryProvider = new QueryHistoryProvider(vscode.workspace.rootPath);
+
+    vscode.window.createTreeView('bigquery.queries', {
+        treeDataProvider: queryHistoryProvider
+    })
 
     vscode.languages.registerDocumentFormattingEditProvider("BigQuery", {
         provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
@@ -53,6 +62,8 @@ export function activate(context: vscode.ExtensionContext) {
         }
     })
 
+    context.subscriptions.push(vscode.commands.registerCommand('queryHistory.edit', (query: Query) => openQuery(query)));
+    context.subscriptions.push(vscode.commands.registerCommand('queryHistory.showQueryInConsole', (query: Query) => showQueryInConsole(query)));
 }
 
 function createStatusBarItem(priority: number): vscode.StatusBarItem {
@@ -163,6 +174,23 @@ function formatProcessedBytes(bytes: number): string {
     }
 
     return `${n.toPrecision(2)} ${capacities[capacityIndex]}`
+}
+
+async function openQuery(query: Query) {
+    const doc = await vscode.workspace.openTextDocument({
+        content: query.query,
+        language: "BigQuery"
+    });
+
+    vscode.window.showTextDocument(doc);
+}
+
+async function showQueryInConsole(query: Query) {
+    const project = "brain-flash-dev";
+    const region = "EU";
+    const jobId = "bquxjob_3e25542b_17329c250d4";
+    const uri = vscode.Uri.parse(`https://console.cloud.google.com/bigquery?project=${project}&j=bq:${region}:${jobId}&page=queryresults`);
+    vscode.env.openExternal(uri);
 }
 
 export function deactivate(): void {
