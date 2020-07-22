@@ -46,7 +46,7 @@ export class BigQueryResourceProvider implements vscode.TreeDataProvider<BigQuer
 
         if (!element) {
             return this.fetchProjectIds()
-                .then(ids => ids.map(id => new BigQueryProject(id)))
+                .then(ids => ids.sort().map(id => new BigQueryProject(id)))
         }
 
         this.bqClient.projectId = element.projectId;
