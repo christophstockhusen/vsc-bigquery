@@ -268,7 +268,9 @@ async function showResourceInConsole(resource: Resource) {
 
     const parameterString = queryParameters.join("&");
 
-    let uri: vscode.Uri = vscode.Uri.parse(`https://console.cloud.google.com/bigquery?${parameterString}`);
+    let uri: vscode.Uri = vscode.Uri.parse(
+        `https://console.cloud.google.com/bigquery?${parameterString}`
+    );
 
     if (typeof(uri) != 'undefined') {
         vscode.env.openExternal(uri);

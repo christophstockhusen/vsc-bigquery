@@ -108,6 +108,10 @@ export class BigQueryProject extends BigQueryResource {
         super(projectId)
     }
 
+    get contextValue(): string {
+        return "project";
+    }
+
     iconPath = {
         light: path.join(__dirname, '..', 'resources', 'light', 'database.svg'),
         dark: path.join(__dirname, '..', 'resources', 'dark', 'database.svg')
@@ -121,6 +125,10 @@ export class BigQueryDataset extends BigQueryResource {
         public readonly datasetId: string
     ) {
         super(datasetId)
+    }
+
+    get contextValue(): string {
+        return "dataset";
     }
 
     iconPath = {
@@ -138,6 +146,10 @@ export class BigQueryTable extends BigQueryResource {
         super(tableId)
     }
 
+    get contextValue(): string {
+        return "table";
+    }
+
     iconPath = {
         light: path.join(__dirname, '..', 'resources', 'light', 'list-flat.svg'),
         dark: path.join(__dirname, '..', 'resources', 'dark', 'list-flat.svg')
@@ -153,6 +165,10 @@ export class BigQueryTableField extends BigQueryResource {
         public readonly dataType: string
     ) {
         super(fieldName, vscode.TreeItemCollapsibleState.None)
+    }
+
+    get contextValue(): string {
+        return "field";
     }
 
     get description(): string {
