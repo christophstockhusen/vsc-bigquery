@@ -70,7 +70,7 @@ export class BigQueryResourceProvider implements vscode.TreeDataProvider<BigQuer
             return this.bqClient.dataset(element.datasetId).table(element.tableId).getMetadata()
                 .then(res => res[0])
                 .then(m => m.schema)
-                .then(s => s.fields)
+                .then(s => s.fields || [])
                 .then(fs => fs.map(f =>
                     new BigQueryTableField(element.projectId, element.datasetId, element.tableId, f.name, f.type)))
         }
