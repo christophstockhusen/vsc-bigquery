@@ -80,6 +80,15 @@
             },
             {
                 "category": "BigQuery",
+                "command": "bigQueryResources.showResourceInConsole",
+                "title": "Open in Console",
+                "icon": {
+                    "light": "resources/light/link-external.svg",
+                    "dark": "resources/dark/link-external.svg"
+                }
+            },
+            {
+                "category": "BigQuery",
                 "command": "queryHistory.edit",
                 "title": "Edit",
                 "icon": {
@@ -145,6 +154,11 @@
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "bigQueryResources.showResourceInConsole",
+                    "when": "view == bigquery.resources",
+                    "group": "inline"
+                },
                 {
                     "command": "queryHistory.showQueryInConsole",
                     "when": "view == bigquery.queries",

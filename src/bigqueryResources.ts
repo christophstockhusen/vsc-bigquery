@@ -101,7 +101,7 @@ class BigQueryResource extends vscode.TreeItem {
     }
 }
 
-class BigQueryProject extends BigQueryResource {
+export class BigQueryProject extends BigQueryResource {
     constructor(
         public readonly projectId: string
     ) {
@@ -115,7 +115,7 @@ class BigQueryProject extends BigQueryResource {
 
 }
 
-class BigQueryDataset extends BigQueryResource {
+export class BigQueryDataset extends BigQueryResource {
     constructor(
         public readonly projectId: string,
         public readonly datasetId: string
@@ -129,7 +129,7 @@ class BigQueryDataset extends BigQueryResource {
     }
 }
 
-class BigQueryTable extends BigQueryResource {
+export class BigQueryTable extends BigQueryResource {
     constructor(
         public readonly projectId: string,
         public readonly datasetId: string,
@@ -144,7 +144,7 @@ class BigQueryTable extends BigQueryResource {
     }
 }
 
-class BigQueryTableField extends BigQueryResource {
+export class BigQueryTableField extends BigQueryResource {
     constructor(
         public readonly projectId: string,
         public readonly datasetId: string,

@@ -23,15 +23,18 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<Query> {
         const [jobs] = await this.bqClient.getJobs();
         const ids = jobs.map(j => j.id);
         const rs = await Promise.all(ids.map(id => this.bqClient.job(id).get().then(r => r[0])));
+        console.log(rs.filter(f => f.metadata.configuration.jobType === "QUERY"));
         const qs = rs
             .filter(f => f.metadata.configuration.jobType === "QUERY")
-            .map(r => [
+            .map(r => new Query(
+                r.metadata.jobReference.projectId,
+                r.metadata.jobReference.location,
+                r.metadata.jobReference.jobId,
                 r.metadata.configuration.query.query,
-                r.metadata.statistics.creationTime
-            ])
-            .sort((a, b) => b[1] - a[1]);
+                r.metadata.statistics.creationTime))
+            .sort((a, b) => b.creationTime - a.creationTime);
 
-        return qs.map(q => new Query(q[0], q[1]));
+        return qs;
     }
 
     getChildren(element?: Query): vscode.ProviderResult<Query[]> {
@@ -49,14 +52,20 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<Query> {
 
 export class Query extends vscode.TreeItem {
     label: string;
+    projectId: string;
+    location: string;
+    id: string;
     query: string;
     creationTime: number;
 
-    constructor(query: string, creationTime: number) {
+    constructor(projectId: string, location: string, id: string, query: string, creationTime: number) {
         super(query);
+        this.projectId = projectId;
+        this.location = location;
+        this.id = id;
         this.query = query;
-        this.label = query.replace(/[\n ]+/g, " ").substr(0, 30);
         this.creationTime = creationTime;
+        this.label = query.replace(/[\n ]+/g, " ").substr(0, 30);
     }
 
     get description(): string {
@@ -70,5 +79,14 @@ export class Query extends vscode.TreeItem {
         const seconds = date.getSeconds().toString().padStart(2, '0');
         const res = `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
         return res;
+    }
+
+    get resourceUri(): vscode.Uri {
+        return vscode.Uri.parse(
+            `https://console.cloud.google.com/bigquery?`
+            + `project=${this.projectId}`
+            + `&j=bq:${this.location}:${this.id}`
+            + `&page=queryresults`
+        );
     }
 }

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { BigQuery } from '@google-cloud/bigquery';
 import { Resource } from '@google-cloud/resource';
-import { BigQueryResourceProvider } from './bigqueryResources';
+import { BigQueryResourceProvider, BigQueryProject, BigQueryDataset, BigQueryTable } from './bigqueryResources';
 import { BigQueryFormatter } from './formatter';
 import { QueryHistoryProvider, Query } from './queryHistory';
 
@@ -55,6 +55,13 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             "bigQueryResources.refreshAllResources",
             () => bigQueryResourceProvider.refreshAllResources()
+        )
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            "bigQueryResources.showResourceInConsole",
+            (resource: Resource) => showResourceInConsole(resource)
         )
     );
 
@@ -114,6 +121,10 @@ function createProjectItem(): vscode.StatusBarItem {
     const item = createStatusBarItem(1);
     item.command = "extension.setProjectCommand";
     return item;
+}
+
+function getCurrentProjectId(): string {
+    return projectItem.text;
 }
 
 function createDryRunItem(): vscode.StatusBarItem {
@@ -225,11 +236,43 @@ async function openQuery(query: Query) {
 }
 
 async function showQueryInConsole(query: Query) {
-    const project = "brain-flash-dev";
-    const region = "EU";
-    const jobId = "bquxjob_3e25542b_17329c250d4";
-    const uri = vscode.Uri.parse(`https://console.cloud.google.com/bigquery?project=${project}&j=bq:${region}:${jobId}&page=queryresults`);
-    vscode.env.openExternal(uri);
+    vscode.env.openExternal(query.resourceUri);
+}
+
+async function showResourceInConsole(resource: Resource) {
+    const queryParameters = [];
+    
+    const currentProjectId = getCurrentProjectId();
+    queryParameters.push(`project=${currentProjectId}`);
+
+    queryParameters.push(`p=${resource.projectId}`);
+
+    let page: string;
+
+    if (resource instanceof BigQueryProject) {
+        page = "project";
+    }
+
+    if (resource instanceof BigQueryDataset) {
+        queryParameters.push(`d=${resource.datasetId}`);
+        page = "dataset";
+    }
+
+    if (resource instanceof BigQueryTable) {
+        queryParameters.push(`d=${resource.datasetId}`);
+        queryParameters.push(`t=${resource.tableId}`);
+        page = "table";
+    }
+
+    queryParameters.push(`page=${page}`);
+
+    const parameterString = queryParameters.join("&");
+
+    let uri: vscode.Uri = vscode.Uri.parse(`https://console.cloud.google.com/bigquery?${parameterString}`);
+
+    if (typeof(uri) != 'undefined') {
+        vscode.env.openExternal(uri);
+    }
 }
 
 export function deactivate(): void {
