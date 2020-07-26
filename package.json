@@ -56,8 +56,12 @@
             },
             {
                 "category": "BigQuery",
-                "title": "Submit",
-                "command": "extension.submit"
+                "title": "Run Query",
+                "command": "extension.submit",
+                "icon": {
+                    "light": "resources/light/run.svg",
+                    "dark": "resources/dark/run.svg"
+                }
             },
             {
                 "category": "BigQuery",
@@ -146,6 +150,13 @@
             ]
         },
         "menus": {
+            "editor/title": [
+                {
+                    "command": "extension.submit",
+                    "when": "resourceLangId == BigQuery",
+                    "group": "navigation@-101"
+                }
+            ],
             "view/title": [
                 {
                     "command": "bigQueryResources.refreshAllResources",

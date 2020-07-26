@@ -17,6 +17,13 @@ let dryRunTimer: NodeJS.Timer;
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand(
+            'extension.submit',
+            () => submit()
+        )
+    );
+    
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
             'extension.dryRun',
             () => dryRun()
         )
@@ -49,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
         {
             treeDataProvider: bigQueryResourceProvider
         }
-    )
+    );
 
     context.subscriptions.push(
         vscode.commands.registerCommand(
@@ -207,6 +214,20 @@ function dryRun(): void {
                 dryRunItem.text = "$(warning)";
                 dryRunItem.tooltip = error.message;
             })
+    }
+}
+
+function submit(): void {
+    updateStatusBarItem();
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activate) {
+        const query = activeEditor.document.getText()
+        const queryOptions = {
+            query: query,
+            dryRun: false,
+            location: bqClient.location
+        }
+        bqClient.createQueryJob(queryOptions);
     }
 }
 
