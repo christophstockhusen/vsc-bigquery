@@ -14,6 +14,8 @@
     "categories": [
         "Programming Languages"
     ],
+    "icon": "resources/BigQuery.png",
+    "license": "see license.txt",
     "activationEvents": [
         "*",
         "onLanguage:sql",
