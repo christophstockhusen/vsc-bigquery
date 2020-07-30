@@ -81,6 +81,10 @@ export class Query extends vscode.TreeItem {
         return res;
     }
 
+    get tooltip(): string {
+        return this.query;
+    }
+
     get resourceUri(): vscode.Uri {
         return vscode.Uri.parse(
             `https://console.cloud.google.com/bigquery?`
