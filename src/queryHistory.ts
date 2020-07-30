@@ -1,12 +1,16 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { BigQuery, Job } from '@google-cloud/bigquery';
+import * as bigquery from './extension';
 
 export class QueryHistoryProvider implements vscode.TreeDataProvider<Query> {
     private bqClient: BigQuery;
 
-    constructor(private workspaceRoot: string) {
-        this.bqClient = new BigQuery();
+    constructor(
+        private workspaceRoot: string,
+        bqClient: BigQuery
+    ) {
+        this.bqClient = bqClient;
     }
 
     private _onDidChangeTreeData: vscode.EventEmitter<void | Query> = new vscode.EventEmitter<void | Query>()
@@ -21,10 +25,11 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<Query> {
     }
 
     async getQueries() {
-        const [jobs] = await this.bqClient.getJobs();
+        const [jobs] = await this.bqClient.getJobs({
+            maxResults: 100
+        });
         const ids = jobs.map(j => j.id);
         const rs = await Promise.all(ids.map(id => this.bqClient.job(id).get().then(r => r[0])));
-        console.log(rs.filter(f => f.metadata.configuration.jobType === "QUERY"));
         const qs = rs
             .filter(f => f.metadata.configuration.jobType === "QUERY")
             .map(r => new Query(
@@ -139,7 +144,7 @@ export class Query extends vscode.TreeItem {
 
 function extractJobStatus(job: Job): JobStatus {
     const status = job.metadata.status;
-    
+
     if (status.state === 'PENDING') {
         return JobStatus.PENDING;
     }
@@ -148,7 +153,7 @@ function extractJobStatus(job: Job): JobStatus {
         return JobStatus.RUNNING;
     }
 
-    if (typeof(status.errorResult) === 'undefined') {
+    if (typeof (status.errorResult) === 'undefined') {
         return JobStatus.SUCCESS;
     }
 

@@ -83,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
 
-    queryHistoryProvider = new QueryHistoryProvider(vscode.workspace.rootPath);
+    queryHistoryProvider = new QueryHistoryProvider(vscode.workspace.rootPath, bqClient);
 
     context.subscriptions.push(
         vscode.window.createTreeView(
@@ -128,6 +128,7 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
 
+    resetQueryHistoryTimer();
 }
 
 function createStatusBarItem(priority: number): vscode.StatusBarItem {
@@ -141,7 +142,7 @@ function createProjectItem(): vscode.StatusBarItem {
     return item;
 }
 
-function getCurrentProjectId(): string {
+export function getCurrentProjectId(): string {
     return projectItem.text;
 }
 
@@ -164,6 +165,7 @@ function setProjectCommand(): void {
             if (typeof (p) !== 'undefined') {
                 bqClient.projectId = p;
                 updateProjectIdItem();
+                queryHistoryProvider.refreshHistory();
             }
         })
         .catch(error => vscode.window.showErrorMessage(error.message));
@@ -257,16 +259,18 @@ function submitContent(full: boolean): void {
     }
 
     bqClient.createQueryJob(queryOptions);
+    
+    resetQueryHistoryTimer();
 }
 
-function resetQueryHistoryTimer(): void {
+function resetQueryHistoryTimer(millis: number = 30 * 1000): void {
     clearTimeout(queryHistoryTimer);
     queryHistoryTimer = setTimeout(
         () => {
             queryHistoryProvider.refreshHistory();
             resetQueryHistoryTimer();
         }
-        , 500)
+        , millis)
 }
 
 function formatProcessedBytes(bytes: number): string {
@@ -282,7 +286,7 @@ function formatProcessedBytes(bytes: number): string {
         }
     }
 
-    return `${n.toPrecision(2)} ${capacities[capacityIndex]}`
+    return `${parseFloat(n.toPrecision(2))} ${capacities[capacityIndex]}`
 }
 
 async function openQuery(query: Query) {
