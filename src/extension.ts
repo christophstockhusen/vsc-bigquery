@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { BigQuery } from '@google-cloud/bigquery';
+import { BigQuery, Job } from '@google-cloud/bigquery';
 import { Resource } from '@google-cloud/resource';
 import { BigQueryResourceProvider, BigQueryProject, BigQueryDataset, BigQueryTable } from './bigqueryResources';
 import { BigQueryFormatter } from './formatter';
@@ -13,15 +13,26 @@ let projectItem: vscode.StatusBarItem;
 let dryRunItem: vscode.StatusBarItem;
 
 let dryRunTimer: NodeJS.Timer;
+let queryHistoryTimer: NodeJS.Timer;
+
+let bigQueryResourceProvider: BigQueryResourceProvider;
+let queryHistoryProvider: QueryHistoryProvider;
 
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'extension.submit',
-            () => submit()
+            () => submitAll()
         )
     );
-    
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'extension.submitRegion',
+            () => submitSelection()
+        )
+    );
+
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'extension.dryRun',
@@ -49,7 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.window.onDidChangeTextEditorSelection((_) => updateDryRunTimer());
 
-    const bigQueryResourceProvider = new BigQueryResourceProvider(vscode.workspace.rootPath);
+    bigQueryResourceProvider = new BigQueryResourceProvider(vscode.workspace.rootPath);
 
     vscode.window.createTreeView(
         'bigquery.resources',
@@ -72,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
 
-    const queryHistoryProvider = new QueryHistoryProvider(vscode.workspace.rootPath);
+    queryHistoryProvider = new QueryHistoryProvider(vscode.workspace.rootPath);
 
     context.subscriptions.push(
         vscode.window.createTreeView(
@@ -217,18 +228,45 @@ function dryRun(): void {
     }
 }
 
-function submit(): void {
-    updateStatusBarItem();
+function submitAll(): void {
+    submitContent(true);
+}
+
+function submitSelection(): void {
+    submitContent(false);
+}
+
+function submitContent(full: boolean): void {
     const activeEditor = vscode.window.activeTextEditor;
-    if (activate) {
-        const query = activeEditor.document.getText()
-        const queryOptions = {
-            query: query,
-            dryRun: false,
-            location: bqClient.location
-        }
-        bqClient.createQueryJob(queryOptions);
+    let query: string;
+
+    if (full) {
+        query = activeEditor.document.getText();
+    } else {
+        const selection = activeEditor.selection;
+        query = activeEditor.document.getText(selection)
     }
+
+    activate;
+    updateStatusBarItem();
+
+    const queryOptions = {
+        query: query,
+        dryRun: false,
+        location: bqClient.location
+    }
+
+    bqClient.createQueryJob(queryOptions);
+}
+
+function resetQueryHistoryTimer(): void {
+    clearTimeout(queryHistoryTimer);
+    queryHistoryTimer = setTimeout(
+        () => {
+            queryHistoryProvider.refreshHistory();
+            resetQueryHistoryTimer();
+        }
+        , 500)
 }
 
 function formatProcessedBytes(bytes: number): string {
@@ -262,7 +300,7 @@ async function showQueryInConsole(query: Query) {
 
 async function showResourceInConsole(resource: Resource) {
     const queryParameters = [];
-    
+
     const currentProjectId = getCurrentProjectId();
     queryParameters.push(`project=${currentProjectId}`);
 
@@ -293,7 +331,7 @@ async function showResourceInConsole(resource: Resource) {
         `https://console.cloud.google.com/bigquery?${parameterString}`
     );
 
-    if (typeof(uri) != 'undefined') {
+    if (typeof (uri) != 'undefined') {
         vscode.env.openExternal(uri);
     }
 }

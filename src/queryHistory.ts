@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { BigQuery } from '@google-cloud/bigquery';
+import * as path from 'path';
+import { BigQuery, Job } from '@google-cloud/bigquery';
 
 export class QueryHistoryProvider implements vscode.TreeDataProvider<Query> {
     private bqClient: BigQuery;
@@ -31,7 +32,8 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<Query> {
                 r.metadata.jobReference.location,
                 r.metadata.jobReference.jobId,
                 r.metadata.configuration.query.query,
-                r.metadata.statistics.creationTime))
+                r.metadata.statistics.creationTime,
+                extractJobStatus(r)))
             .sort((a, b) => b.creationTime - a.creationTime);
 
         return qs;
@@ -50,6 +52,13 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<Query> {
 
 }
 
+enum JobStatus {
+    PENDING,
+    RUNNING,
+    SUCCESS,
+    FAILURE,
+}
+
 export class Query extends vscode.TreeItem {
     label: string;
     projectId: string;
@@ -57,8 +66,16 @@ export class Query extends vscode.TreeItem {
     id: string;
     query: string;
     creationTime: number;
+    jobStatus: JobStatus;
 
-    constructor(projectId: string, location: string, id: string, query: string, creationTime: number) {
+    constructor(
+        projectId: string,
+        location: string,
+        id: string,
+        query: string,
+        creationTime: number,
+        jobStatus: JobStatus
+    ) {
         super(query);
         this.projectId = projectId;
         this.location = location;
@@ -66,6 +83,7 @@ export class Query extends vscode.TreeItem {
         this.query = query;
         this.creationTime = creationTime;
         this.label = query.replace(/[\n ]+/g, " ").substr(0, 30);
+        this.jobStatus = jobStatus;
     }
 
     get description(): string {
@@ -93,4 +111,46 @@ export class Query extends vscode.TreeItem {
             + `&page=queryresults`
         );
     }
+
+    get iconPath() {
+        return {
+            light: path.join(__dirname, '..', 'resources', 'light', this.iconName(this.jobStatus)),
+            dark: path.join(__dirname, '..', 'resources', 'dark', this.iconName(this.jobStatus))
+        }
+    }
+
+    private iconName(s: JobStatus): string {
+        switch (this.jobStatus) {
+            case JobStatus.PENDING:
+                return "watch.svg";
+
+            case JobStatus.RUNNING:
+                return "loading.svg";
+
+            case JobStatus.SUCCESS:
+                return "pass.svg";
+
+            case JobStatus.FAILURE:
+            default:
+                return "error.svg";
+        }
+    }
+}
+
+function extractJobStatus(job: Job): JobStatus {
+    const status = job.metadata.status;
+    
+    if (status.state === 'PENDING') {
+        return JobStatus.PENDING;
+    }
+
+    if (status.state === 'RUNNING') {
+        return JobStatus.RUNNING;
+    }
+
+    if (typeof(status.errorResult) === 'undefined') {
+        return JobStatus.SUCCESS;
+    }
+
+    return JobStatus.FAILURE;
 }
