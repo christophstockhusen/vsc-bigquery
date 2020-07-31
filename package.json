@@ -191,8 +191,7 @@
         "watch": "tsc -watch -p ./",
         "webpack": "webpack --mode development",
         "webpack-dev": "webpack --mode development --watch",
-        "test-compile": "tsc -p ./",
-        "postversion": "git push && git push --tags"
+        "test-compile": "tsc -p ./"
     },
     "devDependencies": {
         "@types/node": "^8.10.25",
