@@ -208,6 +208,6 @@
         "@google-cloud/resource": "^1.2.1",
         "google-auth-library": "^6.0.5",
         "googleapis": "^55.0.0",
-        "sql-formatter": "git+ssh://git@github.com/christophstockhusen/sql-formatter.git#bigquery"
+        "sql-formatter": "git+https://github.com/christophstockhusen/sql-formatter.git#bigquery"
     }
 }
