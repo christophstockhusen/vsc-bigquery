@@ -23,6 +23,10 @@ jobs:
       - uses: actions/setup-node@v2-beta
         with:
           node-version: '14'
+      - name: Setup git config
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
       - run: npm version prerelease --preid=alpha
       - uses: ad-m/github-push-action@master
         with:
