@@ -5,9 +5,8 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  test: 
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2-beta
@@ -15,4 +14,13 @@ jobs:
           node-version: '14'
       - run: npm install
       - run: npm test
+
+  prerelease:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '14'
       - run: npm version prerelease --preid=alpha
