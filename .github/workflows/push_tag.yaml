@@ -2,8 +2,6 @@ name: CI
 
 on: 
   push:
-    branches:
-      - master
     tags:
       - 'v*'
 
@@ -26,6 +24,7 @@ jobs:
       - uses: actions/setup-node@v2-beta
         with:
           node-version: '14'
+      - run: npm install
       - run: npm install -g vsce
       - run: vsce package
       - uses: actions/create-release@v1
