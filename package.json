@@ -191,7 +191,8 @@
         "watch": "tsc -watch -p ./",
         "webpack": "webpack --mode development",
         "webpack-dev": "webpack --mode development --watch",
-        "test-compile": "tsc -p ./"
+        "test-compile": "tsc -p ./",
+        "postversion": "git push && git push --tags"
     },
     "devDependencies": {
         "@types/node": "^8.10.25",
@@ -200,6 +201,7 @@
         "ts-loader": "^8.0.1",
         "tslint": "^5.16.0",
         "typescript": "^3.9.7",
+        "vsce": "^1.77.0",
         "webpack": "^4.44.1",
         "webpack-cli": "^3.3.12"
     },
