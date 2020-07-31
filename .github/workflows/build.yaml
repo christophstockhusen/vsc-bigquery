@@ -15,6 +15,5 @@ jobs:
       - uses: actions/setup-node@v2-beta
         with:
           node-version: '14'
-          check-latest: true
       - run: npm install
       - run: npm test
