@@ -43,19 +43,20 @@ jobs:
       - run: npm install
       - run: npm install -g vsce
       - run: vsce package
+      - run: echo "::set-env name=tag::${${{ github.ref }}#"refs/tags/"}"
       - uses: actions/create-release@v1
         id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Pre-Release ${{ github.ref }}
+          tag_name: $tag
+          release_name: Pre-Release $tag
           prerelease: true
       - uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./vsc-bigquery-${{ github.ref }}.vsix
-          asset_name: vsc-bigquery-${{ github.ref }}.vsix
+          asset_path: ./vsc-bigquery-"$tag".vsix
+          asset_name: vsc-bigquery-"$tag".vsix
           asset_content_type: application/octet-stream
