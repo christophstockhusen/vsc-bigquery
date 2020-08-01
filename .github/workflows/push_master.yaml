@@ -1,4 +1,4 @@
-name: CI
+name: Push Master
 
 on: 
   push:
@@ -31,32 +31,3 @@ jobs:
       - uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }} 
-
-  release:
-    needs: tag
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: '14'
-      - run: npm install
-      - run: npm install -g vsce
-      - run: vsce package
-      - run: echo "::set-env name=version::$(npm run echo-version | tail -1)"
-      - uses: actions/create-release@v1
-        id: create_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: $version
-          release_name: Pre-Release $version
-          prerelease: true
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./vsc-bigquery-$version.vsix
-          asset_name: vsc-bigquery-$version.vsix
-          asset_content_type: application/octet-stream

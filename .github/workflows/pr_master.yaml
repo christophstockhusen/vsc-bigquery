@@ -1,4 +1,4 @@
-name: CI
+name: Pull Request to Master
 
 on: 
   pull_request:
