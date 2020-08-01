@@ -17,7 +17,7 @@ jobs:
       - run: npm test
 
   release:
-    needs: tag
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
