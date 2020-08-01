@@ -192,7 +192,8 @@
         "webpack": "webpack --mode development",
         "webpack-dev": "webpack --mode development --watch",
         "test-compile": "tsc -p ./",
-        "postversion": "git push && git push --tags"
+        "postversion": "git push && git push --tags",
+        "echo-version": "echo $npm_package_version"
     },
     "devDependencies": {
         "@types/node": "^8.10.25",
