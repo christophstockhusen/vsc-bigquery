@@ -10,25 +10,13 @@ jobs:
   test: 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2-beta
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2-beta
         with:
           node-version: '14'
-      - run: npm install
-      - run: npm test
-
-  tag:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.CS_ACCESS_TOKEN }}
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: '14'
-      - name: Setup git config
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-      - run: npm version prerelease --preid=alpha
+      - name: Install dependencies
+        run: npm install
+      - name: Test
+        run: npm test

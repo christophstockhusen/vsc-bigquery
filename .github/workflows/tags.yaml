@@ -20,26 +20,25 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2-beta
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2-beta
         with:
           node-version: '14'
-      - run: npm install
-      - run: npm install -g vsce
-      - run: vsce package
-      - uses: actions/create-release@v1
-        id: create_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install dependencies
+        run: npm install
+      - name: Install VSCE
+        run: npm install -g vsce
+      - name: Package VSIX package
+        run: vsce package --out "release"
+      - name: Release
+        uses: meeDamian/github-release@2.0
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ github.ref }}
           release_name: Pre-Release ${{ github.ref }}
           prerelease: true
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./vsc-bigquery-${{ github.ref }}.vsix
-          asset_name: vsc-bigquery-${{ github.ref }}.vsix
-          asset_content_type: application/octet-stream
+          files: release/
+          gzip: false
+          body: automatic release from master
