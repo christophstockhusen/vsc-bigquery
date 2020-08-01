@@ -49,14 +49,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ version }}
-          release_name: Pre-Release ${{ version }}
+          tag_name: $version
+          release_name: Pre-Release $version
           prerelease: true
       - uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./vsc-bigquery-${{ version }}.vsix
-          asset_name: vsc-bigquery-${{ version }}.vsix
+          asset_path: ./vsc-bigquery-$version.vsix
+          asset_name: vsc-bigquery-$version.vsix
           asset_content_type: application/octet-stream
