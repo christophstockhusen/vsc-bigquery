@@ -28,7 +28,3 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
       - run: npm version prerelease --preid=alpha
-      - uses: ad-m/github-push-action@master
-        with:
-          tags: true
-          github_token: ${{ secrets.GITHUB_TOKEN }} 
