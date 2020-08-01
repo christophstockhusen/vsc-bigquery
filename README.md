@@ -1,4 +1,4 @@
-# BigQuery for Visual Studio Code (vscode-bigquery)
+# BigQuery for Visual Studio Code (vsc-bigquery)
 
 A Visual Studio Code extension for developing [BigQuery SQL](https://cloud.google.com/bigquery/). 
 
