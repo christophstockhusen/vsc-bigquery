@@ -7,7 +7,7 @@
         "name": "Christoph Stockhusen",
         "email": "mail@christophstockhusen.de"
     },
-    "version": "0.0.2-alpha.9",
+    "version": "0.0.2-alpha.10",
     "engines": {
         "vscode": "^1.47.0"
     },
