@@ -23,24 +23,15 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'extension.submit',
             () => submitAll()
-        )
-    );
-
-    context.subscriptions.push(
+        ),
         vscode.commands.registerCommand(
             'extension.submitRegion',
             () => submitSelection()
-        )
-    );
-
-    context.subscriptions.push(
+        ),
         vscode.commands.registerCommand(
             'extension.dryRun',
             () => dryRun()
-        )
-    );
-
-    context.subscriptions.push(
+        ),
         vscode.commands.registerCommand(
             'extension.setProjectCommand',
             () => setProjectCommand()
@@ -52,13 +43,14 @@ export function activate(context: vscode.ExtensionContext) {
 
     projectItem = createProjectItem();
     dryRunItem = createDryRunItem();
-    updateStatusBarItem();
+    updateStatusBarItems();
+    projectItem.show();
 
     context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(updateStatusBarItem)
+        vscode.window.onDidChangeActiveTextEditor(updateStatusBarItems),
+        vscode.window.onDidChangeVisibleTextEditors(updateStatusBarItems),
+        vscode.window.onDidChangeTextEditorSelection(updateDryRunTimer)
     );
-
-    vscode.window.onDidChangeTextEditorSelection((_) => updateDryRunTimer());
 
     bigQueryResourceProvider = new BigQueryResourceProvider(vscode.workspace.rootPath);
 
@@ -73,10 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             "bigQueryResources.refreshAllResources",
             () => bigQueryResourceProvider.refreshAllResources()
-        )
-    );
-
-    context.subscriptions.push(
+        ),
         vscode.commands.registerCommand(
             "bigQueryResources.showResourceInConsole",
             (resource: Resource) => showResourceInConsole(resource)
@@ -118,10 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'queryHistory.edit',
             (query: Query) => openQuery(query)
-        )
-    );
-
-    context.subscriptions.push(
+        ),
         vscode.commands.registerCommand(
             'queryHistory.showQueryInConsole',
             (query: Query) => showQueryInConsole(query)
@@ -171,13 +157,9 @@ function setProjectCommand(): void {
         .catch(error => vscode.window.showErrorMessage(error.message));
 }
 
-function updateStatusBarItem(): void {
-    if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.languageId == languageId) {
-        updateProjectIdItem();
-        showStatusBarItems();
-    } else {
-        hideStatusBarItems();
-    }
+function updateStatusBarItems(): void {
+    updateProjectIdItem();
+    updateDryRunItem();
 }
 
 function updateProjectIdItem(): void {
@@ -186,14 +168,12 @@ function updateProjectIdItem(): void {
         .catch(error => vscode.window.showErrorMessage(error.message));
 }
 
-function showStatusBarItems(): void {
-    projectItem.show();
-    dryRunItem.show();
-}
-
-function hideStatusBarItems(): void {
-    projectItem.hide();
-    dryRunItem.hide();
+function updateDryRunItem(): void {
+    if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.languageId == languageId) {
+        dryRunItem.show();
+    } else {
+        dryRunItem.hide();
+    }
 }
 
 function updateDryRunTimer(): void {
@@ -202,7 +182,7 @@ function updateDryRunTimer(): void {
 }
 
 function dryRun(): void {
-    updateStatusBarItem();
+    updateDryRunItem();
     const activeEditor = vscode.window.activeTextEditor;
     if (activate) {
         const query = activeEditor.document.getText()
@@ -250,7 +230,7 @@ function submitContent(full: boolean): void {
     }
 
     activate;
-    updateStatusBarItem();
+    updateStatusBarItems();
 
     const queryOptions = {
         query: query,
@@ -259,7 +239,7 @@ function submitContent(full: boolean): void {
     }
 
     bqClient.createQueryJob(queryOptions);
-    
+
     resetQueryHistoryTimer();
 }
 
