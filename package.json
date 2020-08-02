@@ -17,13 +17,7 @@
     "icon": "resources/BigQuery.png",
     "license": "MIT",
     "activationEvents": [
-        "*",
-        "onLanguage:sql",
-        "onCommand:extension.dryRun",
-        "onCommand:extension.setProjectCommand",
-        "onCommand:extension.submit",
-        "onCommand:extension.submitRegion",
-        "onView:bigQueryResources"
+        "*"
     ],
     "repository": {
         "url": "https://github.com/christophstockhusen/vcs-bigquery"
