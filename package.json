@@ -53,7 +53,7 @@
             {
                 "category": "BigQuery",
                 "title": "Run Query",
-                "command": "extension.submit",
+                "command": "extension.submitQuery",
                 "icon": {
                     "light": "resources/light/run.svg",
                     "dark": "resources/dark/run.svg"
@@ -61,8 +61,12 @@
             },
             {
                 "category": "BigQuery",
-                "title": "Submit Region",
-                "command": "extension.submitRegion"
+                "title": "Run Query and Open in Browser",
+                "command": "extension.submitQueryAndOpenBrowser",
+                "icon": {
+                    "light": "resources/light/run.svg",
+                    "dark": "resources/dark/run.svg"
+                }
             },
             {
                 "category": "BigQuery",
@@ -108,18 +112,14 @@
         ],
         "keybindings": [
             {
-                "command": "extension.dryRun",
-                "key": "ctrl+alt+enter",
-                "mac": "cmd+alt+enter"
-            },
-            {
-                "when": "editorTextFocus && extension == vsc-bigquery",
-                "command": "extension.submit",
+                "when": "editorTextFocus && editorLangId == BigQuery",
+                "command": "extension.submitQuery",
                 "key": "ctrl+enter",
                 "mac": "cmd+enter"
             },
             {
-                "command": "extension.submitRegion",
+                "when": "editorTextFocus && editorLangId == BigQuery",
+                "command": "extension.submitQueryAndOpenBrowser",
                 "key": "ctrl+shift+enter",
                 "mac": "cmd+shift+enter"
             }
@@ -148,7 +148,7 @@
         "menus": {
             "editor/title": [
                 {
-                    "command": "extension.submit",
+                    "command": "extension.submitQuery",
                     "when": "resourceLangId == BigQuery",
                     "group": "navigation@-101"
                 }

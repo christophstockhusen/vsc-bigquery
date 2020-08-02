@@ -23,11 +23,11 @@ Installation via the Visual Studio Code Marketplace is not yet available. Sorry 
 
 ## Commands and Shortcuts
 
-| Command | Shortcut | Effect |
-| --- | ----------|--------|
-| Format document |  `CTRL-Shift-I` | Format query |
-| Run Query |  `CTRL-Enter` | Run query and open browser to see query progress and results. |
-| Run Selection |  `CTRL-Shift-Enter` | Run the current query selection and open browser to see query progress and results. |
-| Dry Run |  `CTRL-Alt-Enter` | Force a dry run of your query and show validation results in status bar. |
-| Set Google Cloud Project | | List the available Google Cloud Projects and set one as default. |
-| Refresh BigQuery Resources | | Update the list of projects, datasets, tables, views, models in the resources view. |
+| Command                      | Shortcut           | Effect                                                                              |
+|------------------------------|--------------------|-------------------------------------------------------------------------------------|
+| `Run Query`                  | `CTRL-Enter`       | Run current selection or full query (if no selection).                              |
+| `Run Query and Open Browser` | `CTRL-Shift-Enter` | Execute `Run Query` but also open browser with query results.               |
+| `Format document`            | `CTRL-Shift-I`     | Format query                                                                        |
+| `Dry Run`                    |                    | Force a dry run of your query and show validation results in status bar.            |
+| `Set Google Cloud Project`   |                    | List the available Google Cloud Projects and set one as default.                    |
+| `Refresh BigQuery Resources` |                    | Update the list of projects, datasets, tables, views, models in the resources view. |

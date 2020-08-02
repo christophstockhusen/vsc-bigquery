@@ -3,7 +3,9 @@ import { BigQuery, Job } from '@google-cloud/bigquery';
 import { Resource } from '@google-cloud/resource';
 import { BigQueryResourceProvider, BigQueryProject, BigQueryDataset, BigQueryTable } from './bigqueryResources';
 import { BigQueryFormatter } from './formatter';
-import { QueryHistoryProvider, Query } from './queryHistory';
+import { QueryHistoryProvider } from './queryHistoryProvider';
+import { Query } from './query';
+import { getJobUri } from './job';
 
 const languageId = 'BigQuery';
 let bqClient: BigQuery;
@@ -21,12 +23,12 @@ let queryHistoryProvider: QueryHistoryProvider;
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand(
-            'extension.submit',
-            () => submitAll()
+            'extension.submitQuery',
+            () => submitQuery(false)
         ),
         vscode.commands.registerCommand(
-            'extension.submitRegion',
-            () => submitSelection()
+            'extension.submitQueryAndOpenBrowser',
+            () => submitQuery(true)
         ),
         vscode.commands.registerCommand(
             'extension.dryRun',
@@ -210,27 +212,17 @@ function dryRun(): void {
     }
 }
 
-function submitAll(): void {
-    submitContent(true);
-}
-
-function submitSelection(): void {
-    submitContent(false);
-}
-
-function submitContent(full: boolean): void {
+function submitQuery(openBrowser: boolean): void {
+    console.log("Submitting query. OpenBrowser: " + openBrowser);
     const activeEditor = vscode.window.activeTextEditor;
     let query: string;
 
-    if (full) {
+    if (activeEditor.selection.isEmpty) {
         query = activeEditor.document.getText();
     } else {
         const selection = activeEditor.selection;
         query = activeEditor.document.getText(selection)
     }
-
-    activate;
-    updateStatusBarItems();
 
     const queryOptions = {
         query: query,
@@ -238,7 +230,16 @@ function submitContent(full: boolean): void {
         location: bqClient.location
     }
 
-    bqClient.createQueryJob(queryOptions);
+    async function runAndOpen() {
+        const [job] = await bqClient.createQueryJob(queryOptions);
+        const jobUri = await getJobUri(job);
+
+        if (openBrowser) {
+            vscode.env.openExternal(jobUri);
+        }
+    }
+
+    runAndOpen();
 
     resetQueryHistoryTimer();
 }
