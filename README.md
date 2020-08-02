@@ -26,7 +26,7 @@ Installation via the Visual Studio Code Marketplace is not yet available. Sorry 
 | Command                      | Shortcut           | Effect                                                                              |
 |------------------------------|--------------------|-------------------------------------------------------------------------------------|
 | `Run Query`                  | `CTRL-Enter`       | Run current selection or full query (if no selection).                              |
-| `Run Query and Open Browser` | `CTRL-Shift-Enter` | Execute `Run Query` but also open browser with query results.               |
+| `Run Query and Open Browser` | `CTRL-Shift-Enter` | Execute `Run Query` but also open browser with query results.                       |
 | `Format document`            | `CTRL-Shift-I`     | Format query                                                                        |
 | `Dry Run`                    |                    | Force a dry run of your query and show validation results in status bar.            |
 | `Set Google Cloud Project`   |                    | List the available Google Cloud Projects and set one as default.                    |
