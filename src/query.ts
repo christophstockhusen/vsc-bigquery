@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { JobStatus } from './job';
 import * as path from 'path';
+import * as fs from 'fs';
 
 export class Query extends vscode.TreeItem {
     label: string;
@@ -57,8 +58,8 @@ export class Query extends vscode.TreeItem {
 
     get iconPath() {
         return {
-            light: path.join(__dirname, '..', 'resources', 'light', this.iconName(this.jobStatus)),
-            dark: path.join(__dirname, '..', 'resources', 'dark', this.iconName(this.jobStatus))
+            light: path.join(__filename, '..', '..', 'resources', 'light', this.iconName(this.jobStatus)),
+            dark: path.join(__filename, '..', '..', 'resources', 'dark', this.iconName(this.jobStatus))
         }
     }
 

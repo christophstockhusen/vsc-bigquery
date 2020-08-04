@@ -113,8 +113,8 @@ export class BigQueryProject extends BigQueryResource {
     }
 
     iconPath = {
-        light: path.join(__dirname, '..', 'resources', 'light', 'database.svg'),
-        dark: path.join(__dirname, '..', 'resources', 'dark', 'database.svg')
+        light: path.join(__filename, '..', '..', 'resources', 'light', 'database.svg'),
+        dark: path.join(__filename, '..', '..', 'resources', 'dark', 'database.svg')
     }
 
 }
@@ -132,8 +132,8 @@ export class BigQueryDataset extends BigQueryResource {
     }
 
     iconPath = {
-        light: path.join(__dirname, '..', 'resources', 'light', 'folder.svg'),
-        dark: path.join(__dirname, '..', 'resources', 'dark', 'folder.svg')
+        light: path.join(__filename, '..', '..', 'resources', 'light', 'folder.svg'),
+        dark: path.join(__filename, '..', '..', 'resources', 'dark', 'folder.svg')
     }
 }
 
@@ -151,8 +151,8 @@ export class BigQueryTable extends BigQueryResource {
     }
 
     iconPath = {
-        light: path.join(__dirname, '..', 'resources', 'light', 'list-flat.svg'),
-        dark: path.join(__dirname, '..', 'resources', 'dark', 'list-flat.svg')
+        light: path.join(__filename, '..', '..', 'resources', 'light', 'list-flat.svg'),
+        dark: path.join(__filename, '..', '..', 'resources', 'dark', 'list-flat.svg')
     }
 }
 
@@ -176,7 +176,7 @@ export class BigQueryTableField extends BigQueryResource {
     }
 
     iconPath = {
-        light: path.join(__dirname, '..', 'resources', 'light', 'symbol-field.svg'),
-        dark: path.join(__dirname, '..', 'resources', 'dark', 'symbol-field.svg')
+        light: path.join(__filename, '..', '..', 'resources', 'light', 'symbol-field.svg'),
+        dark: path.join(__filename, '..', '..', 'resources', 'dark', 'symbol-field.svg')
     }
 }
