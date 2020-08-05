@@ -20,7 +20,13 @@ let queryHistoryTimer: NodeJS.Timer;
 let bigQueryResourceProvider: BigQueryResourceProvider;
 let queryHistoryProvider: QueryHistoryProvider;
 
+const memProjectId = 'projectId';
+
+let ctx: vscode.ExtensionContext;
+
 export function activate(context: vscode.ExtensionContext) {
+    ctx = context;
+
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'extension.submitQuery',
@@ -116,28 +122,26 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
 
+    getCurrentProjectId().then(p => setCurrentProjectId(p));
+
     resetQueryHistoryTimer();
 }
 
-function createStatusBarItem(priority: number): vscode.StatusBarItem {
-    const alignment = vscode.StatusBarAlignment.Right;
-    return vscode.window.createStatusBarItem(alignment, priority);
+export async function getCurrentProjectId(): Promise<string> {
+    const memento = ctx.workspaceState.get(memProjectId);
+    if (typeof memento === 'undefined') {
+        bqClient.getProjectId()
+            .then(p => ctx.workspaceState.update(memProjectId, p))
+    }
+    return ctx.workspaceState.get(memProjectId);
 }
 
-function createProjectItem(): vscode.StatusBarItem {
-    const item = createStatusBarItem(1);
-    item.command = "extension.setProjectCommand";
-    return item;
-}
-
-export function getCurrentProjectId(): string {
-    return projectItem.text;
-}
-
-function createDryRunItem(): vscode.StatusBarItem {
-    const item = createStatusBarItem(0);
-    item.command = "extension.dryRun";
-    return item;
+function setCurrentProjectId(projectId: string): void {
+    ctx.workspaceState.update(memProjectId, projectId);
+    bqClient.projectId = projectId;
+    updateProjectIdItem();
+    queryHistoryProvider.refreshHistory();
+    dryRun();
 }
 
 function setProjectCommand(): void {
@@ -151,12 +155,27 @@ function setProjectCommand(): void {
         .then(ps => vscode.window.showQuickPick(ps))
         .then(p => {
             if (typeof (p) !== 'undefined') {
-                bqClient.projectId = p;
-                updateProjectIdItem();
-                queryHistoryProvider.refreshHistory();
+                setCurrentProjectId(p);
             }
         })
         .catch(error => vscode.window.showErrorMessage(error.message));
+}
+
+function createStatusBarItem(priority: number): vscode.StatusBarItem {
+    const alignment = vscode.StatusBarAlignment.Right;
+    return vscode.window.createStatusBarItem(alignment, priority);
+}
+
+function createProjectItem(): vscode.StatusBarItem {
+    const item = createStatusBarItem(1);
+    item.command = "extension.setProjectCommand";
+    return item;
+}
+
+function createDryRunItem(): vscode.StatusBarItem {
+    const item = createStatusBarItem(0);
+    item.command = "extension.dryRun";
+    return item;
 }
 
 function updateStatusBarItems(): void {
@@ -165,7 +184,7 @@ function updateStatusBarItems(): void {
 }
 
 function updateProjectIdItem(): void {
-    bqClient.getProjectId()
+    getCurrentProjectId()
         .then(p => projectItem.text = p)
         .catch(error => vscode.window.showErrorMessage(error.message));
 }
@@ -183,10 +202,10 @@ function updateDryRunTimer(): void {
     dryRunTimer = setTimeout(() => dryRun(), 500)
 }
 
-function dryRun(): void {
+async function dryRun(): Promise<void> {
     updateDryRunItem();
     const activeEditor = vscode.window.activeTextEditor;
-    if (activate) {
+    if (typeof activeEditor !== 'undefined') {
         const query = activeEditor.document.getText()
         const queryOptions = {
             query: query,
@@ -212,36 +231,33 @@ function dryRun(): void {
     }
 }
 
-function submitQuery(openBrowser: boolean): void {
-    console.log("Submitting query. OpenBrowser: " + openBrowser);
+async function submitQuery(openBrowser: boolean): Promise<void> {
     const activeEditor = vscode.window.activeTextEditor;
-    let query: string;
+    if (typeof activeEditor !== 'undefined') { 
+        let query: string;
 
-    if (activeEditor.selection.isEmpty) {
-        query = activeEditor.document.getText();
-    } else {
-        const selection = activeEditor.selection;
-        query = activeEditor.document.getText(selection)
-    }
+        if (activeEditor.selection.isEmpty) {
+            query = activeEditor.document.getText();
+        } else {
+            const selection = activeEditor.selection;
+            query = activeEditor.document.getText(selection)
+        }
 
-    const queryOptions = {
-        query: query,
-        dryRun: false,
-        location: bqClient.location
-    }
+        const queryOptions = {
+            query: query,
+            dryRun: false,
+            location: bqClient.location
+        }
 
-    async function runAndOpen() {
         const [job] = await bqClient.createQueryJob(queryOptions);
         const jobUri = await getJobUri(job);
 
         if (openBrowser) {
             vscode.env.openExternal(jobUri);
         }
+
+        resetQueryHistoryTimer(2 * 1000);
     }
-
-    runAndOpen();
-
-    resetQueryHistoryTimer();
 }
 
 function resetQueryHistoryTimer(millis: number = 30 * 1000): void {
