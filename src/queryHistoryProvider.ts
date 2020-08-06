@@ -25,8 +25,12 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<Query> {
     }
 
     async getQueries() {
+        const maxResults = +vscode.workspace
+            .getConfiguration('bigquery')
+            .get("queryHistory.maxEntries");
+
         const [jobs] = await this.bqClient.getJobs({
-            maxResults: 100
+            maxResults: maxResults
         });
         const ids = jobs.map(j => j.id);
         const rs = await Promise.all(ids.map(id => this.bqClient.job(id).get().then(r => r[0])));

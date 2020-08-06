@@ -24,6 +24,16 @@
     },
     "main": "./dist/extension.js",
     "contributes": {
+        "configuration": {
+            "title": "BigQuery",
+            "properties": {
+                "bigquery.queryHistory.maxEntries": {
+                    "type": "number",
+                    "default": "100",
+                    "description": "The maximal number of queries shown in the query history."
+                }
+            }
+        },
         "languages": [
             {
                 "id": "BigQuery",
@@ -180,8 +190,8 @@
         }
     },
     "scripts": {
-        "vscode:prepublish_foo": "npm run compile",
         "vscode:prepublish": "webpack --mode production",
+        "vsce:package": "vsce package",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "webpack": "webpack --mode development",
