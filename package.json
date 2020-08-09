@@ -202,20 +202,20 @@
         "prerelease": "npm version prerelease --preid=alpha"
     },
     "devDependencies": {
-        "@types/node": "^8.10.25",
+        "@types/node": "^8.10.62",
         "@types/sql-formatter": "^2.3.0",
         "@types/vscode": "^1.47.0",
         "copy-webpack-plugin": "^6.0.3",
-        "ts-loader": "^8.0.1",
+        "ts-loader": "^8.0.2",
         "tslint": "^5.16.0",
         "typescript": "^3.9.7",
         "webpack": "^4.44.1",
         "webpack-cli": "^3.3.12"
     },
     "dependencies": {
-        "@google-cloud/bigquery": "^5.0.1",
+        "@google-cloud/bigquery": "^5.1.0",
         "@google-cloud/resource": "^1.2.1",
-        "google-auth-library": "^6.0.5",
+        "google-auth-library": "^6.0.6",
         "googleapis": "^55.0.0",
         "sql-formatter": "git+https://github.com/christophstockhusen/sql-formatter.git#bigquery"
     }

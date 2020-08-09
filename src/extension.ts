@@ -6,6 +6,9 @@ import { BigQueryFormatter } from './formatter';
 import { QueryHistoryProvider } from './queryHistoryProvider';
 import { Query } from './query';
 import { getJobUri } from './job';
+import { getErrorRange, setErrorDecorations } from './errordecorator';
+import { DryRunResult, DryRunFailure, DryRunSuccess } from './dryRunResult';
+import { DryRunCache } from './dryRunCache';
 
 const languageId = 'BigQuery';
 let bqClient: BigQuery;
@@ -14,7 +17,9 @@ let resourceClient: Resource;
 let projectItem: vscode.StatusBarItem;
 let dryRunItem: vscode.StatusBarItem;
 
-let dryRunTimer: NodeJS.Timer;
+let dryRunTimers: Map<vscode.TextDocument, NodeJS.Timer>;
+let dryRunCache: DryRunCache;
+
 let queryHistoryTimer: NodeJS.Timer;
 
 let bigQueryResourceProvider: BigQueryResourceProvider;
@@ -26,6 +31,8 @@ let ctx: vscode.ExtensionContext;
 
 export function activate(context: vscode.ExtensionContext) {
     ctx = context;
+    dryRunTimers = new Map<vscode.TextDocument, NodeJS.Timer>();
+    dryRunCache = new DryRunCache();
 
     context.subscriptions.push(
         vscode.commands.registerCommand(
@@ -38,7 +45,15 @@ export function activate(context: vscode.ExtensionContext) {
         ),
         vscode.commands.registerCommand(
             'extension.dryRun',
-            () => dryRun()
+            () => {
+                const editor = vscode.window.activeTextEditor;
+                if (editor !== undefined) {
+                    const document = editor.document;
+                    if (document.languageId === languageId) {
+                        dryRun(document);
+                    }
+                }
+            }
         ),
         vscode.commands.registerCommand(
             'extension.setProjectCommand',
@@ -55,9 +70,19 @@ export function activate(context: vscode.ExtensionContext) {
     projectItem.show();
 
     context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(updateStatusBarItems),
-        vscode.window.onDidChangeVisibleTextEditors(updateStatusBarItems),
-        vscode.window.onDidChangeTextEditorSelection(updateDryRunTimer)
+        vscode.window.onDidChangeActiveTextEditor(() => updateStatusBarItems),
+        vscode.window.onDidChangeVisibleTextEditors(editors => {
+            updateStatusBarItems();
+            const documents = new Set(editors.map(e => e.document));
+            documents.forEach(doc => updateDecorations(doc));
+        }),
+        vscode.workspace.onDidChangeTextDocument(e => {
+            if (e.document.languageId === languageId) {
+                setErrorDecorations(e.document);
+                updateDryRunTimer(e.document);
+            }
+        }),
+        vscode.window.onDidChangeVisibleTextEditors(() => dryRunCache.gc)
     );
 
     bigQueryResourceProvider = new BigQueryResourceProvider(vscode.workspace.rootPath);
@@ -141,7 +166,7 @@ function setCurrentProjectId(projectId: string): void {
     bqClient.projectId = projectId;
     updateProjectIdItem();
     queryHistoryProvider.refreshHistory();
-    dryRun();
+    dryRunAll();
 }
 
 function setProjectCommand(): void {
@@ -190,45 +215,87 @@ function updateProjectIdItem(): void {
 }
 
 function updateDryRunItem(): void {
-    if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.languageId == languageId) {
-        dryRunItem.show();
-    } else {
+    const editor = vscode.window.activeTextEditor;
+    if (editor === undefined) {
         dryRunItem.hide();
+        return;
     }
-}
 
-function updateDryRunTimer(): void {
-    clearTimeout(dryRunTimer);
-    dryRunTimer = setTimeout(() => dryRun(), 500)
-}
+    const document = editor.document;
+    if (document.languageId !== languageId) {
+        dryRunItem.hide();
+        return;
+    }
 
-async function dryRun(): Promise<void> {
-    updateDryRunItem();
-    const activeEditor = vscode.window.activeTextEditor;
-    if (typeof activeEditor !== 'undefined') {
-        const query = activeEditor.document.getText()
-        const queryOptions = {
-            query: query,
-            dryRun: true,
-            location: bqClient.location
+    dryRunItem.show();
+
+    const dryRunResult = dryRunCache.getResult(document);
+    if (dryRunResult === undefined) {
+        dryRunItem.tooltip = "no dryrun performed yet";
+        dryRunItem.text = "$(warning)";
+    } else {
+        if (dryRunResult instanceof DryRunSuccess) {
+            dryRunItem.text = "$(pass) " + dryRunResult.processedBytes;
+            dryRunItem.tooltip = 'Success!';
         }
-        dryRunItem.text = "$(loading)";
-        dryRunItem.tooltip = "Performing dry run..."
-
-        bqClient.createQueryJob(queryOptions)
-            .then(jobResponse => jobResponse[0])
-            .then(job => job.metadata.statistics)
-            .then(statistics => statistics.totalBytesProcessed)
-            .then(bytes => formatProcessedBytes(bytes))
-            .then(s => {
-                dryRunItem.text = "$(pass) " + s;
-                dryRunItem.tooltip = s;
-            })
-            .catch(error => {
-                dryRunItem.text = "$(warning)";
-                dryRunItem.tooltip = error.message;
-            })
+        if (dryRunResult instanceof DryRunFailure) {
+            dryRunItem.text = "$(error)";
+            dryRunItem.tooltip = dryRunResult.errorMessage;
+        }
     }
+}
+
+function updateDryRunTimer(document: vscode.TextDocument): void {
+    const oldTimer = dryRunTimers.get(document);
+    if (oldTimer !== undefined) {
+        clearTimeout(oldTimer);
+    }
+    const newTimer = setTimeout(() => dryRun(document), 500)
+    dryRunTimers.set(document, newTimer);
+}
+
+function dryRunAll(): void {
+    const editors = vscode.window.visibleTextEditors;
+    editors.forEach(e => {
+        if (e.document.languageId === languageId) {
+            dryRun(e.document);
+        }
+    })
+}
+
+async function dryRun(document: vscode.TextDocument): Promise<void> {
+    const queryOptions = {
+        query: document.getText(),
+        dryRun: true,
+        location: bqClient.location
+    }
+
+    let dryRunResult: DryRunResult;
+
+    try {
+        const [job] = await bqClient.createQueryJob(queryOptions);
+        const totalBytesProcessed = +job.metadata.statistics.totalBytesProcessed;
+        dryRunResult = new DryRunSuccess(totalBytesProcessed);
+    } catch (error) {
+        dryRunResult = new DryRunFailure(error.message);
+    }
+
+    dryRunCache.addResult(document, dryRunResult);
+
+    updateDecorations(document);
+    updateDryRunItem();
+}
+
+function updateDecorations(document: vscode.TextDocument): void {
+    let errorRanges: vscode.Range[] = [];
+    const dryRunResult = dryRunCache.getResult(document);
+    if (dryRunResult instanceof DryRunFailure) {
+        const errorRange = getErrorRange(dryRunResult.errorMessage);
+        if (errorRange !== null) {
+            errorRanges = [errorRange];
+        }
+    }
+    setErrorDecorations(document, errorRanges);
 }
 
 async function submitQuery(openBrowser: boolean): Promise<void> {
@@ -268,22 +335,6 @@ function resetQueryHistoryTimer(millis: number = 30 * 1000): void {
             resetQueryHistoryTimer();
         }
         , millis)
-}
-
-function formatProcessedBytes(bytes: number): string {
-    const capacities = ["B", "KB", "MB", "GB", "TB", "PB"];
-    let n = +bytes;
-    let capacityIndex = 0;
-    for (let i = 0; i < capacities.length; i++) {
-        capacityIndex = i;
-        if (n < 1024) {
-            break;
-        } else {
-            n /= 1024;
-        }
-    }
-
-    return `${parseFloat(n.toPrecision(2))} ${capacities[capacityIndex]}`
 }
 
 async function openQuery(query: Query) {
