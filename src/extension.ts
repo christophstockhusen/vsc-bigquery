@@ -114,7 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
 
-    queryHistoryProvider = new QueryHistoryProvider(vscode.workspace.rootPath, bqClient);
+    queryHistoryProvider = new QueryHistoryProvider(vscode.workspace.rootPath);
 
     context.subscriptions.push(
         vscode.window.createTreeView(

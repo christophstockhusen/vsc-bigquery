@@ -2,15 +2,13 @@ import * as vscode from 'vscode';
 import { BigQuery, Job } from '@google-cloud/bigquery';
 import { Query } from './query';
 import { extractJobStatus } from './job';
+import { getCurrentProjectId } from './extension';
 
 export class QueryHistoryProvider implements vscode.TreeDataProvider<Query> {
-    private bqClient: BigQuery;
 
     constructor(
         private workspaceRoot: string,
-        bqClient: BigQuery
     ) {
-        this.bqClient = bqClient;
     }
 
     private _onDidChangeTreeData: vscode.EventEmitter<void | Query> = new vscode.EventEmitter<void | Query>()
@@ -29,11 +27,14 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<Query> {
             .getConfiguration('bigquery')
             .get("queryHistory.maxEntries");
 
-        const [jobs] = await this.bqClient.getJobs({
+        const projectId = await getCurrentProjectId();
+        const bqClient = new BigQuery({ projectId: projectId });
+
+        const [jobs] = await bqClient.getJobs({
             maxResults: maxResults
         });
         const ids = jobs.map(j => j.id);
-        const rs = await Promise.all(ids.map(id => this.bqClient.job(id).get().then(r => r[0])));
+        const rs = await Promise.all(ids.map(id => bqClient.job(id).get().then(r => r[0])));
         const qs = rs
             .filter(f => f.metadata.configuration.jobType === "QUERY")
             .map(r => new Query(
