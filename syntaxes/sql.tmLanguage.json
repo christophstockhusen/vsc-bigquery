@@ -28,7 +28,7 @@
 		"comments": {
 			"patterns": [
 				{
-					"begin": "(^[ \\t]+)?(?=--)",
+					"begin": "(^[ \\t]+)?(?=--|#)",
 					"end": "(?!\\G)",
 					"beginCaptures": {
 						"1": {
@@ -37,7 +37,7 @@
 					},
 					"patterns": [
 						{
-							"begin": "--",
+							"begin": "--|#",
 							"beginCaptures": {
 								"0": {
 									"name": "punctuation.definition.comment.sql"
