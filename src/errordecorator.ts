@@ -4,6 +4,8 @@ import { isNull } from 'util';
 
 export const errorDecorationType = vscode.window.createTextEditorDecorationType({
     overviewRulerColor: new vscode.ThemeColor("editorOverviewRuler.errorForeground"),
+    color: new vscode.ThemeColor("editorError.foreground"),
+    fontWeight: "bold",
     light: {
         gutterIconPath: path.join(__filename, '..', '..', 'resources', 'light', 'error.svg'),
     },
@@ -21,10 +23,11 @@ export function getErrorRange(errorMessage: string): vscode.Range {
     }
 
     const row = +match.groups.row - 1;
+    const column = +match.groups.column - 1;
 
     return new vscode.Range(
-        new vscode.Position(row, 0),
-        new vscode.Position(row, 0)
+        new vscode.Position(row, column),
+        new vscode.Position(row, column + 1)
     )
 }
 
