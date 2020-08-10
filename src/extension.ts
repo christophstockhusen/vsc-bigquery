@@ -70,19 +70,28 @@ export function activate(context: vscode.ExtensionContext) {
     projectItem.show();
 
     context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(() => updateStatusBarItems),
+        vscode.workspace.onDidOpenTextDocument(document => {
+            if (document.languageId === languageId) {
+                dryRun(document)
+                    .then(() => updateDecorations(document));
+            }
+        }),
+        vscode.window.onDidChangeActiveTextEditor(e => {
+            updateStatusBarItems();
+            updateDecorations(e.document);
+        }),
         vscode.window.onDidChangeVisibleTextEditors(editors => {
             updateStatusBarItems();
             const documents = new Set(editors.map(e => e.document));
             documents.forEach(doc => updateDecorations(doc));
+            dryRunCache.gc();
         }),
         vscode.workspace.onDidChangeTextDocument(e => {
             if (e.document.languageId === languageId) {
-                setErrorDecorations(e.document);
+                updateDecorations(e.document);
                 updateDryRunTimer(e.document);
             }
-        }),
-        vscode.window.onDidChangeVisibleTextEditors(() => dryRunCache.gc)
+        })
     );
 
     bigQueryResourceProvider = new BigQueryResourceProvider(vscode.workspace.rootPath);
@@ -286,7 +295,7 @@ async function dryRun(document: vscode.TextDocument): Promise<void> {
     updateDryRunItem();
 }
 
-function updateDecorations(document: vscode.TextDocument): void {
+async function updateDecorations(document: vscode.TextDocument): Promise<void> {
     let errorRanges: vscode.Range[] = [];
     const dryRunResult = dryRunCache.getResult(document);
     if (dryRunResult instanceof DryRunFailure) {
@@ -300,7 +309,7 @@ function updateDecorations(document: vscode.TextDocument): void {
 
 async function submitQuery(openBrowser: boolean): Promise<void> {
     const activeEditor = vscode.window.activeTextEditor;
-    if (typeof activeEditor !== 'undefined') { 
+    if (typeof activeEditor !== 'undefined') {
         let query: string;
 
         if (activeEditor.selection.isEmpty) {
