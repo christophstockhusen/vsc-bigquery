@@ -31,6 +31,12 @@
                     "type": "number",
                     "default": "100",
                     "description": "The maximal number of queries shown in the query history."
+                },
+                "bigquery.location": {
+                    "type": "string",
+                    "default": "EU",
+                    "enum": ["EU", "US"],
+                    "description": "The location where datasets are stored and queries are processed."
                 }
             }
         },

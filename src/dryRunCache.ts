@@ -13,13 +13,15 @@ export class DryRunCache {
     }
 
     getResult(document: vscode.TextDocument): DryRunResult {
-        return this._dryRunResults.get(document);
+        return this._dryRunResults.get(document); 
+    }
+
+    remove(document: vscode.TextDocument): void {
+        this._dryRunResults.delete(document);
     }
 
     gc(): void {
-        const editors = vscode.window.visibleTextEditors;
-        const documents = new Set(editors.map(e => e.document));
-
+        const documents = new Set(vscode.workspace.textDocuments);
         const newResults = new Map<vscode.TextDocument, DryRunResult>();
         
         for (const [doc, res] of this._dryRunResults) {

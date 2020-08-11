@@ -67,6 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
     projectItem = createProjectItem();
     dryRunItem = createDryRunItem();
     updateStatusBarItems();
+    projectItem.text = "No GCP project selected yet";
     projectItem.show();
 
     context.subscriptions.push(
@@ -77,9 +78,12 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }),
         vscode.window.onDidChangeActiveTextEditor(e => {
-            updateStatusBarItems();
-            updateDecorations(e.document);
+            if (e.document.languageId === languageId) {
+                updateStatusBarItems();
+                updateDecorations(e.document);
+            }
         }),
+        vscode.workspace.onDidCloseTextDocument(() => dryRunCache.gc()),
         vscode.window.onDidChangeVisibleTextEditors(editors => {
             updateStatusBarItems();
             const documents = new Set(editors.map(e => e.document));
@@ -88,6 +92,7 @@ export function activate(context: vscode.ExtensionContext) {
         }),
         vscode.workspace.onDidChangeTextDocument(e => {
             if (e.document.languageId === languageId) {
+                dryRunCache.remove(e.document);
                 updateDecorations(e.document);
                 updateDryRunTimer(e.document);
             }
@@ -164,8 +169,8 @@ export function activate(context: vscode.ExtensionContext) {
 export async function getCurrentProjectId(): Promise<string> {
     const memento = ctx.workspaceState.get(memProjectId);
     if (typeof memento === 'undefined') {
-        bqClient.getProjectId()
-            .then(p => ctx.workspaceState.update(memProjectId, p))
+        const projectId = await bqClient.getProjectId();
+        ctx.workspaceState.update(memProjectId, projectId);
     }
     return ctx.workspaceState.get(memProjectId);
 }
@@ -193,6 +198,13 @@ function setProjectCommand(): void {
             }
         })
         .catch(error => vscode.window.showErrorMessage(error.message));
+}
+
+function getLocation(): string {
+    const location = String(vscode.workspace
+        .getConfiguration('bigquery')
+        .get("location"));
+    return location;
 }
 
 function createStatusBarItem(priority: number): vscode.StatusBarItem {
@@ -273,10 +285,16 @@ function dryRunAll(): void {
 }
 
 async function dryRun(document: vscode.TextDocument): Promise<void> {
+    const projectId = await getCurrentProjectId();
+    const location = getLocation();
+    const bqClient = new BigQuery({
+        projectId: projectId,
+        location: location
+    });
+
     const queryOptions = {
         query: document.getText(),
-        dryRun: true,
-        location: bqClient.location
+        dryRun: true
     }
 
     let dryRunResult: DryRunResult;
@@ -319,10 +337,16 @@ async function submitQuery(openBrowser: boolean): Promise<void> {
             query = activeEditor.document.getText(selection)
         }
 
+        const projectId = await getCurrentProjectId();
+        const location = getLocation();
+        const bqClient = new BigQuery({
+            projectId: projectId,
+            location: location
+        });
+
         const queryOptions = {
             query: query,
-            dryRun: false,
-            location: bqClient.location
+            dryRun: false
         }
 
         const [job] = await bqClient.createQueryJob(queryOptions);
@@ -395,8 +419,4 @@ async function showResourceInConsole(resource: Resource) {
     if (typeof (uri) != 'undefined') {
         vscode.env.openExternal(uri);
     }
-}
-
-export function deactivate(): void {
-    projectItem.dispose();
 }
