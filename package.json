@@ -7,7 +7,7 @@
         "name": "Christoph Stockhusen",
         "email": "mail@christophstockhusen.de"
     },
-    "version": "0.0.2-alpha.24",
+    "version": "0.0.2-alpha.25",
     "engines": {
         "vscode": "^1.47.0"
     },
@@ -35,7 +35,10 @@
                 "bigquery.location": {
                     "type": "string",
                     "default": "EU",
-                    "enum": ["EU", "US"],
+                    "enum": [
+                        "EU",
+                        "US"
+                    ],
                     "description": "The location where datasets are stored and queries are processed."
                 }
             }
