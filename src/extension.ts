@@ -349,12 +349,36 @@ async function submitQuery(openBrowser: boolean): Promise<void> {
             dryRun: false
         }
 
-        const [job] = await bqClient.createQueryJob(queryOptions);
-        const jobUri = await getJobUri(job);
-
-        if (openBrowser) {
-            vscode.env.openExternal(jobUri);
+        const progressOptions: vscode.ProgressOptions = {
+            title: "Running query ...",
+            location: vscode.ProgressLocation.Notification
         }
+
+        const task = async () => {
+            try {
+                const [job] = await bqClient.createQueryJob(queryOptions);
+                const jobUri = await getJobUri(job);
+                if (openBrowser) {
+                    vscode.env.openExternal(jobUri);
+                }
+
+                const [rows] = await job.getQueryResults({ maxResults: 0 })
+
+                vscode.window
+                    .showInformationMessage("Finished running query", "Open in Browser")
+                    .then(selection => {
+                        if (selection === "Open in Browser") {
+                            vscode.env.openExternal(jobUri);
+                        }
+                    });
+
+                return rows;
+            } catch (error) {
+                vscode.window.showErrorMessage(error.message);
+            }
+        }
+
+        vscode.window.withProgress(progressOptions, task);
 
         resetQueryHistoryTimer(2 * 1000);
     }
