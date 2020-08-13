@@ -3,15 +3,16 @@
 A Visual Studio Code extension for developing [BigQuery SQL](https://cloud.google.com/bigquery/). 
 
 ## Features 
-- Format your queries.
-- Validate your queries while you write them.
-- Show the expected number of processed bytes while you write your query.
-- Run your queries.
-- Set your default Google Cloud Platform (GCP) project.
-- List available GCP projects with their datasets, tables, views, models.
-- Show table schemas.
-- List your query history.
-- Open queries from history for further development directly in Visual Studio Code.
+
+- Syntax highlighting.
+- Query formatting.
+- Query validation on the fly with presentation of expected number of bytes that will be processed.
+- Error highlighting.
+- Query submission with notification on error or success.
+- GCP Project selection and saving per workspace.
+- Listing of datasets, tables, views, models, table schemas.
+- Query history listing with success and failed state.
+- Query editing from history for further development directly in Visual Studio Code.
 
 ## Installation
 
