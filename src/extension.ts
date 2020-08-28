@@ -79,15 +79,19 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }),
         vscode.window.onDidChangeActiveTextEditor(e => {
-            if (e.document.languageId === languageId) {
+            if (e !== undefined && e.document.languageId === languageId) {
+                dryRun(e.document);
+                updateDiagnosticsCollection(dryRunCache, diagnosticsCollection);
                 updateStatusBarItems();
             }
         }),
-        vscode.workspace.onDidCloseTextDocument(() => dryRunCache.gc()),
         vscode.window.onDidChangeVisibleTextEditors(editors => {
             updateStatusBarItems();
-            const documents = new Set(editors.map(e => e.document));
             dryRunCache.gc();
+        }),
+        vscode.workspace.onDidCloseTextDocument(document => {
+            dryRunCache.remove(document);
+            updateDiagnosticsCollection(dryRunCache, diagnosticsCollection);
         }),
         vscode.workspace.onDidChangeTextDocument(e => {
             if (e.document.languageId === languageId) {

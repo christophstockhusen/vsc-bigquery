@@ -4,6 +4,9 @@ import { DryRunSuccess, DryRunFailure } from './dryRunResult';
 
 export async function updateDiagnosticsCollection(dryRunCache: DryRunCache, diagnosticsCollection: vscode.DiagnosticCollection): Promise<void> {
     const documents = vscode.workspace.textDocuments;
+
+    diagnosticsCollection.clear();
+    
     documents.forEach(document => {
         const dryRunResult = dryRunCache.getResult(document);
         if (dryRunResult instanceof DryRunSuccess) {
