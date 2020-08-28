@@ -6,7 +6,7 @@ import { BigQueryFormatter } from './formatter';
 import { QueryHistoryProvider } from './queryHistoryProvider';
 import { Query } from './query';
 import { getJobUri } from './job';
-import { getErrorRange } from './errordecorator';
+import { updateDiagnosticsCollection } from './diagnostics';
 import { DryRunResult, DryRunFailure, DryRunSuccess } from './dryRunResult';
 import { DryRunCache } from './dryRunCache';
 
@@ -92,7 +92,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.workspace.onDidChangeTextDocument(e => {
             if (e.document.languageId === languageId) {
                 dryRunCache.remove(e.document);
-                updateDiagnosticsCollection();
+                updateDiagnosticsCollection(dryRunCache, diagnosticsCollection);
                 updateDryRunTimer(e.document);
             }
         })
@@ -311,24 +311,8 @@ async function dryRun(document: vscode.TextDocument): Promise<void> {
 
     dryRunCache.addResult(document, dryRunResult);
 
-    updateDiagnosticsCollection();
+    updateDiagnosticsCollection(dryRunCache, diagnosticsCollection);
     updateDryRunItem();
-}
-
-async function updateDiagnosticsCollection(): Promise<void> {
-    const documents = vscode.workspace.textDocuments;
-    documents.forEach(document => {
-        const dryRunResult = dryRunCache.getResult(document);
-        if (dryRunResult instanceof DryRunFailure) {
-            const errorMessage = dryRunResult.errorMessage;
-            const errorRange = getErrorRange(errorMessage);
-            const severity = vscode.DiagnosticSeverity.Error;
-
-            const diagnostics = [new vscode.Diagnostic(errorRange, errorMessage, severity)];
-            diagnosticsCollection.set(document.uri, diagnostics);
-        }
-    }
-    );
 }
 
 async function submitQuery(openBrowser: boolean): Promise<void> {
