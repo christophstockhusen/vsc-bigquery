@@ -273,7 +273,10 @@ function updateDryRunTimer(document: vscode.TextDocument): void {
     if (oldTimer !== undefined) {
         clearTimeout(oldTimer);
     }
-    const newTimer = setTimeout(() => dryRun(document), 500)
+    const delay = +vscode.workspace
+        .getConfiguration('bigquery')
+        .get("bigquery.dryRunDelay");
+    const newTimer = setTimeout(() => dryRun(document), delay)
     dryRunTimers.set(document, newTimer);
 }
 

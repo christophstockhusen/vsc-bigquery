@@ -40,6 +40,11 @@
                         "US"
                     ],
                     "description": "The location where datasets are stored and queries are processed."
+                },
+                "bigquery.dryRunDelay": {
+                    "type": "number",
+                    "default": "200",
+                    "description": "Time (in milliseconds) to wait after typing before dry run is performed."
                 }
             }
         },
