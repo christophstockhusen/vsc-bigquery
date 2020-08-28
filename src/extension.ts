@@ -6,7 +6,7 @@ import { BigQueryFormatter } from './formatter';
 import { QueryHistoryProvider } from './queryHistoryProvider';
 import { Query } from './query';
 import { getJobUri } from './job';
-import { getErrorRange, setErrorDecorations } from './errordecorator';
+import { getErrorRange } from './errordecorator';
 import { DryRunResult, DryRunFailure, DryRunSuccess } from './dryRunResult';
 import { DryRunCache } from './dryRunCache';
 
@@ -26,6 +26,8 @@ let bigQueryResourceProvider: BigQueryResourceProvider;
 let queryHistoryProvider: QueryHistoryProvider;
 
 const memProjectId = 'projectId';
+
+let diagnosticsCollection: vscode.DiagnosticCollection;
 
 let ctx: vscode.ExtensionContext;
 
@@ -73,27 +75,24 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.workspace.onDidOpenTextDocument(document => {
             if (document.languageId === languageId) {
-                dryRun(document)
-                    .then(() => updateDecorations(document));
+                dryRun(document);
             }
         }),
         vscode.window.onDidChangeActiveTextEditor(e => {
             if (e.document.languageId === languageId) {
                 updateStatusBarItems();
-                updateDecorations(e.document);
             }
         }),
         vscode.workspace.onDidCloseTextDocument(() => dryRunCache.gc()),
         vscode.window.onDidChangeVisibleTextEditors(editors => {
             updateStatusBarItems();
             const documents = new Set(editors.map(e => e.document));
-            documents.forEach(doc => updateDecorations(doc));
             dryRunCache.gc();
         }),
         vscode.workspace.onDidChangeTextDocument(e => {
             if (e.document.languageId === languageId) {
                 dryRunCache.remove(e.document);
-                updateDecorations(e.document);
+                updateDiagnosticsCollection();
                 updateDryRunTimer(e.document);
             }
         })
@@ -160,6 +159,9 @@ export function activate(context: vscode.ExtensionContext) {
             (query: Query) => showQueryInConsole(query)
         )
     );
+
+    diagnosticsCollection = vscode.languages.createDiagnosticCollection('bigquery');
+    context.subscriptions.push(diagnosticsCollection);
 
     getCurrentProjectId().then(p => setCurrentProjectId(p));
 
@@ -309,20 +311,24 @@ async function dryRun(document: vscode.TextDocument): Promise<void> {
 
     dryRunCache.addResult(document, dryRunResult);
 
-    updateDecorations(document);
+    updateDiagnosticsCollection();
     updateDryRunItem();
 }
 
-async function updateDecorations(document: vscode.TextDocument): Promise<void> {
-    let errorRanges: vscode.Range[] = [];
-    const dryRunResult = dryRunCache.getResult(document);
-    if (dryRunResult instanceof DryRunFailure) {
-        const errorRange = getErrorRange(dryRunResult.errorMessage);
-        if (errorRange !== null) {
-            errorRanges = [errorRange];
+async function updateDiagnosticsCollection(): Promise<void> {
+    const documents = vscode.workspace.textDocuments;
+    documents.forEach(document => {
+        const dryRunResult = dryRunCache.getResult(document);
+        if (dryRunResult instanceof DryRunFailure) {
+            const errorMessage = dryRunResult.errorMessage;
+            const errorRange = getErrorRange(errorMessage);
+            const severity = vscode.DiagnosticSeverity.Error;
+
+            const diagnostics = [new vscode.Diagnostic(errorRange, errorMessage, severity)];
+            diagnosticsCollection.set(document.uri, diagnostics);
         }
     }
-    setErrorDecorations(document, errorRanges);
+    );
 }
 
 async function submitQuery(openBrowser: boolean): Promise<void> {
