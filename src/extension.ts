@@ -355,14 +355,20 @@ async function submitQuery(openBrowser: boolean): Promise<void> {
             try {
                 const [job] = await bqClient.createQueryJob(queryOptions);
                 const jobUri = await getJobUri(job);
-                const displayBigQueryJobResults = +vscode.workspace
+                const displayBigQueryJobResults = vscode.workspace
                     .getConfiguration('bigquery')
-                    .get("bigquery.displayBigQueryJobResults");
-                if (!displayBigQueryJobResults && openBrowser) {
-                    vscode.env.openExternal(jobUri);
-                }
+                    .get("displayBigQueryJobResults");
+
                 const [rows] = await job.getQueryResults()
 
+                if (openBrowser) {
+                    if (displayBigQueryJobResults) {
+                        const panel = vscode.window.createWebviewPanel('queryResults.' + job.metadata.jobReference.jobId, 'Big Query results', vscode.ViewColumn.One, {});
+                        panel.webview.html = getWebviewContentForBigQueryResults(job, queryOptions, rows);
+                    } else {
+                        vscode.env.openExternal(jobUri);
+                    }
+                }
                 vscode.window
                     .showInformationMessage("Finished running query", "Open in Browser")
                     .then(selection => {
@@ -370,11 +376,7 @@ async function submitQuery(openBrowser: boolean): Promise<void> {
                             vscode.env.openExternal(jobUri);
                         }
                     });
-                
-                if (displayBigQueryJobResults) {
-                    const panel = vscode.window.createWebviewPanel('queryResults.' + job.metadata.jobReference.jobId, 'Big Query results', vscode.ViewColumn.One, {});
-                    panel.webview.html = getWebviewContentForBigQueryResults(job, queryOptions, rows);
-                }
+
                 return rows;
             } catch (error) {
                 vscode.window.showErrorMessage(error.message);

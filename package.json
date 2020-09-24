@@ -47,8 +47,12 @@
                     "description": "Time (in milliseconds) to wait after typing before dry run is performed."
                 },
                 "bigquery.displayBigQueryJobResults": {
-                    "type": "bool",
-                    "default": "true",
+                    "type": "boolean",
+                    "default": true,
+                    "enum": [
+                        true,
+                        false
+                    ],
                     "description": "[experimental] Will show job results in a new WebView window."
                 }
             }
