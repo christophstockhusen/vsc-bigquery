@@ -355,9 +355,14 @@ async function submitQuery(openBrowser: boolean): Promise<void> {
             try {
                 const [job] = await bqClient.createQueryJob(queryOptions);
                 const jobUri = await getJobUri(job);
-                if (openBrowser) {
+                const displayBigQueryJobResults = +vscode.workspace
+                    .getConfiguration('bigquery')
+                    .get("bigquery.displayBigQueryJobResults");
+                if (!displayBigQueryJobResults && openBrowser) {
                     vscode.env.openExternal(jobUri);
                 }
+                const [rows] = await job.getQueryResults()
+
                 vscode.window
                     .showInformationMessage("Finished running query", "Open in Browser")
                     .then(selection => {
@@ -365,9 +370,11 @@ async function submitQuery(openBrowser: boolean): Promise<void> {
                             vscode.env.openExternal(jobUri);
                         }
                     });
-                const [rows] = await job.getQueryResults()
-                const panel = vscode.window.createWebviewPanel('queryResults.'+job.metadata.jobReference.jobId, 'Big Query results', vscode.ViewColumn.One, {});
-                panel.webview.html = getWebviewContentForBigQueryResults(job, queryOptions, rows);
+                
+                if (displayBigQueryJobResults) {
+                    const panel = vscode.window.createWebviewPanel('queryResults.' + job.metadata.jobReference.jobId, 'Big Query results', vscode.ViewColumn.One, {});
+                    panel.webview.html = getWebviewContentForBigQueryResults(job, queryOptions, rows);
+                }
                 return rows;
             } catch (error) {
                 vscode.window.showErrorMessage(error.message);
@@ -455,10 +462,10 @@ function getWebviewContentForBigQueryResults(job, queryOptions, rows): string {
     let query = queryOptions.query.replace(/\n/gi, '<br>').replace(/ /gi, '&nbsp;')
     results += `<h3>Query</h3>`
     results += `<table>
-    <tr><td>Project</td><td>`+job.metadata.jobReference.projectId+`</td></tr>
-    <tr><td>Job ID</td><td>`+job.metadata.jobReference.jobId+`</td></tr>
-    <tr><td>Dry run</td><td>`+queryOptions.dryRun.toString()+`</td></tr>
-    <tr><td>Query</td><td>`+query+`</td></tr>
+    <tr><td>Project</td><td>`+ job.metadata.jobReference.projectId + `</td></tr>
+    <tr><td>Job ID</td><td>`+ job.metadata.jobReference.jobId + `</td></tr>
+    <tr><td>Dry run</td><td>`+ queryOptions.dryRun.toString() + `</td></tr>
+    <tr><td>Query</td><td>`+ query + `</td></tr>
     <table>
     `
 
@@ -481,7 +488,7 @@ function getWebviewContentForBigQueryResults(job, queryOptions, rows): string {
         for (const row of rows) {
             rowCount += 1
             results += '<tr>'
-            results += '<th>'+rowCount.toString()+'</th>'
+            results += '<th>' + rowCount.toString() + '</th>'
             for (const value of Object.values(row)) {
                 results += '<td>' + value + '</td>'
             }
