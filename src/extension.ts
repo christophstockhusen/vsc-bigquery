@@ -407,7 +407,7 @@ async function showQueryInConsole(query: Query) {
 async function showResourceInConsole(resource: Resource) {
     const queryParameters = [];
 
-    const currentProjectId = getCurrentProjectId();
+    const currentProjectId = await getCurrentProjectId();
     queryParameters.push(`project=${currentProjectId}`);
 
     queryParameters.push(`p=${resource.projectId}`);
