@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { BigQuery, Job } from '@google-cloud/bigquery';
+import { BigQuery } from '@google-cloud/bigquery';
 import { Resource } from '@google-cloud/resource';
-import { BigQueryResourceProvider, BigQueryProject, BigQueryDataset, BigQueryTable } from './bigqueryResources';
+import { BigQueryResourceProvider, BigQueryProject, BigQueryDataset, BigQueryTable, addToFavouriteProjects, removeFromFavouriteProjects } from './bigqueryResources';
 import { BigQueryFormatter } from './formatter';
 import { QueryHistoryProvider } from './queryHistoryProvider';
 import { Query } from './query';
@@ -23,6 +23,7 @@ let dryRunCache: DryRunCache;
 let queryHistoryTimer: NodeJS.Timer;
 
 let bigQueryResourceProvider: BigQueryResourceProvider;
+let bigQueryFavouriteResourceProvider: BigQueryResourceProvider;
 let queryHistoryProvider: QueryHistoryProvider;
 
 const memProjectId = 'projectId';
@@ -102,7 +103,7 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    bigQueryResourceProvider = new BigQueryResourceProvider(vscode.workspace.rootPath);
+    bigQueryResourceProvider = new BigQueryResourceProvider(context, vscode.workspace.rootPath, false);
 
     vscode.window.createTreeView(
         'bigquery.resources',
@@ -111,6 +112,16 @@ export function activate(context: vscode.ExtensionContext) {
         }
     );
 
+    bigQueryFavouriteResourceProvider = new BigQueryResourceProvider(context, vscode.workspace.rootPath, true);
+
+    vscode.window.createTreeView(
+        'bigquery.favouriteProjects',
+        {
+            treeDataProvider: bigQueryFavouriteResourceProvider
+        }
+    );
+
+
     context.subscriptions.push(
         vscode.commands.registerCommand(
             "bigQueryResources.refreshAllResources",
@@ -118,7 +129,11 @@ export function activate(context: vscode.ExtensionContext) {
         ),
         vscode.commands.registerCommand(
             "bigQueryResources.addToFavouriteProjects",
-            (resource: Resource) => addToFavouriteProjects(resource)
+            (project: BigQueryProject) => addToFavouriteProjects(this.ctx, project)
+        ),
+        vscode.commands.registerCommand(
+            "bigQueryResources.removeFromFavouriteProjects",
+            (project: BigQueryProject) => removeFromFavouriteProjects(this.ctx, project)
         ),
         vscode.commands.registerCommand(
             "bigQueryResources.showResourceInConsole",
@@ -184,6 +199,7 @@ export async function getCurrentProjectId(): Promise<string> {
     }
     return ctx.workspaceState.get(memProjectId);
 }
+
 
 function setCurrentProjectId(projectId: string): void {
     ctx.workspaceState.update(memProjectId, projectId);
@@ -443,14 +459,5 @@ async function showResourceInConsole(resource: Resource) {
 
     if (typeof (uri) != 'undefined') {
         vscode.env.openExternal(uri);
-    }
-}
-
-async function addToFavouriteProjects(resource: Resource) {
-    // use memento API
-    const queryParameters = [];
-
-    if (resource instanceof BigQueryProject) {
-        console.log(resource.projectId)
     }
 }

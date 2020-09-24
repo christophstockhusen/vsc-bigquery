@@ -5,12 +5,14 @@ import { Resource } from '@google-cloud/resource';
 import { google, cloudresourcemanager_v1, serviceusage_v1 } from 'googleapis';
 import { auth, GoogleAuth, JWT, Compute, UserRefreshClient } from 'google-auth-library';
 
+const memFavouriteProjects = "favouriteProjects";
+
 export class BigQueryResourceProvider implements vscode.TreeDataProvider<BigQueryResource> {
     private bqClient: BigQuery;
     private resourceClient: Resource;
     private cloudResourceManager: cloudresourcemanager_v1.Cloudresourcemanager;
 
-    constructor(private workspaceRoot: string) {
+    constructor(private ctx: vscode.ExtensionContext, private workspaceRoot: string, private onlyFavourites: boolean) {
         this.bqClient = new BigQuery();
         this.resourceClient = new Resource();
         this.cloudResourceManager = google.cloudresourcemanager('v1');
@@ -36,17 +38,20 @@ export class BigQueryResourceProvider implements vscode.TreeDataProvider<BigQuer
         });
     }
 
-    private async fetchProjectIds(): Promise<string[]> {
-        return this.resourceClient.getProjects()
+    private async fetchProjectIds(onlyFavourites: boolean): Promise<Array<(string | boolean)[]>> { //Promise<[string, boolean]> {
+        let results = this.resourceClient.getProjects()
             .then(ps => ps[0])
-            .then(ps => ps.map(p => p.id))
+            .then(ps => ps.sort())
+            .then(ps => ps.map(p => [p.id, isProjectPinnedInFavourites(this.ctx, p.id)]))
+            .then(ps => ps.filter(p => onlyFavourites ? p[1] : true));
+        return results;
     }
 
     getChildren(element?: BigQueryResource): vscode.ProviderResult<BigQueryResource[]> {
 
         if (!element) {
-            return this.fetchProjectIds()
-                .then(ids => ids.sort().map(id => new BigQueryProject(id)))
+            return this.fetchProjectIds(this.onlyFavourites)
+                .then(ps => ps.map((p: [string, boolean]) => new BigQueryProject(p[0], p[1])))
         }
 
         this.bqClient.projectId = element.projectId;
@@ -86,30 +91,24 @@ class BigQueryResource extends vscode.TreeItem {
 
     constructor(
         public readonly label: string,
+        public contextValue: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed
     ) {
         super(label, collapsibleState);
         this.projectId = label;
-    }
-
-    get tooltip(): string {
-        return this.label;
-    }
-
-    get description(): string {
-        return "";
+        this.contextValue = contextValue;
+        this.tooltip = this.label;
+        this.description = "";
     }
 }
 
 export class BigQueryProject extends BigQueryResource {
     constructor(
-        public readonly projectId: string
+        public readonly projectId: string,
+        public isPinned: boolean
     ) {
-        super(projectId)
-    }
+        super(projectId, isPinned ? "pinned" : "notPinned" );
 
-    get contextValue(): string {
-        return "project";
     }
 
     iconPath = {
@@ -124,11 +123,7 @@ export class BigQueryDataset extends BigQueryResource {
         public readonly projectId: string,
         public readonly datasetId: string
     ) {
-        super(datasetId)
-    }
-
-    get contextValue(): string {
-        return "dataset";
+        super(datasetId, "dataset");
     }
 
     iconPath = {
@@ -143,11 +138,7 @@ export class BigQueryTable extends BigQueryResource {
         public readonly datasetId: string,
         public readonly tableId: string
     ) {
-        super(tableId)
-    }
-
-    get contextValue(): string {
-        return "table";
+        super(tableId, "table");
     }
 
     iconPath = {
@@ -164,19 +155,38 @@ export class BigQueryTableField extends BigQueryResource {
         public readonly fieldName: string,
         public readonly dataType: string
     ) {
-        super(fieldName, vscode.TreeItemCollapsibleState.None)
-    }
-
-    get contextValue(): string {
-        return "field";
-    }
-
-    get description(): string {
-        return this.dataType;
+        super(fieldName, "field", vscode.TreeItemCollapsibleState.None);
+        this.description = this.dataType;
     }
 
     iconPath = {
         light: path.join(__filename, '..', '..', 'resources', 'light', 'symbol-field.svg'),
         dark: path.join(__filename, '..', '..', 'resources', 'dark', 'symbol-field.svg')
     }
+}
+
+export function isProjectPinnedInFavourites(ctx: vscode.ExtensionContext, projectID: string): boolean {
+    let memento: Set<string> = getMementoForFavouriteProjects(ctx);
+    return memento.has(projectID)
+}
+
+export async function addToFavouriteProjects(ctx: vscode.ExtensionContext, project: BigQueryProject) {
+    let memento: Set<string> = getMementoForFavouriteProjects(ctx);
+    memento.add(project.projectId);
+    ctx.workspaceState.update(memFavouriteProjects, memento);
+}
+
+export async function removeFromFavouriteProjects(ctx: vscode.ExtensionContext, project: BigQueryProject) {
+    let memento: Set<string> = getMementoForFavouriteProjects(ctx);
+    memento.delete(project.projectId);
+    ctx.workspaceState.update(memFavouriteProjects, memento);
+}
+
+function getMementoForFavouriteProjects(ctx: vscode.ExtensionContext): Set<string> {
+    let memento: Set<string> = ctx.workspaceState.get(memFavouriteProjects);
+    if (typeof memento === 'undefined') {
+        memento = new Set<string>();
+        ctx.workspaceState.update(memFavouriteProjects, memento);
+    }
+    return memento;
 }

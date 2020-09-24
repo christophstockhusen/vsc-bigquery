@@ -120,8 +120,17 @@
                 "command": "bigQueryResources.addToFavouriteProjects",
                 "title": "Add to favourite projects",
                 "icon": {
-                    "light": "resources/light/heart.svg",
-                    "dark": "resources/dark/heart.svg"
+                    "light": "resources/light/pin.svg",
+                    "dark": "resources/dark/pin.svg"
+                }
+            },
+            {
+                "category": "BigQuery",
+                "command": "bigQueryResources.removeFromFavouriteProjects",
+                "title": "Remove from favourite projects",
+                "icon": {
+                    "light": "resources/light/pinned.svg",
+                    "dark": "resources/dark/pinned.svg"
                 }
             },
             {
@@ -174,7 +183,7 @@
                 },
                 {
                     "id": "bigquery.resources",
-                    "name": "Projects"
+                    "name": "Resources"
                 },
                 {
                     "id": "bigquery.queries",
@@ -205,7 +214,12 @@
                 },
                 {
                     "command": "bigQueryResources.addToFavouriteProjects",
-                    "when": "view == bigquery.resources",
+                    "when": "view == bigquery.resources && viewItem == notPinned",
+                    "group": "inline"
+                },
+                {
+                    "command": "bigQueryResources.removeFromFavouriteProjects",
+                    "when": "view == bigquery.resources && viewItem == pinned",
                     "group": "inline"
                 },
                 {
