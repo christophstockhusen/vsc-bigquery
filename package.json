@@ -117,6 +117,15 @@
             },
             {
                 "category": "BigQuery",
+                "command": "bigQueryResources.addToFavouriteProjects",
+                "title": "Add to favourite projects",
+                "icon": {
+                    "light": "resources/light/heart.svg",
+                    "dark": "resources/dark/heart.svg"
+                }
+            },
+            {
+                "category": "BigQuery",
                 "command": "queryHistory.edit",
                 "title": "Edit",
                 "icon": {
@@ -160,8 +169,12 @@
         "views": {
             "bigquery": [
                 {
+                    "id": "bigquery.favouriteProjects",
+                    "name": "Favourite Projects"
+                },
+                {
                     "id": "bigquery.resources",
-                    "name": "Resources"
+                    "name": "Projects"
                 },
                 {
                     "id": "bigquery.queries",
@@ -188,6 +201,11 @@
                 {
                     "command": "bigQueryResources.showResourceInConsole",
                     "when": "view == bigquery.resources && viewItem != field",
+                    "group": "inline"
+                },
+                {
+                    "command": "bigQueryResources.addToFavouriteProjects",
+                    "when": "view == bigquery.resources",
                     "group": "inline"
                 },
                 {

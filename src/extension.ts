@@ -117,6 +117,10 @@ export function activate(context: vscode.ExtensionContext) {
             () => bigQueryResourceProvider.refreshAllResources()
         ),
         vscode.commands.registerCommand(
+            "bigQueryResources.addToFavouriteProjects",
+            (resource: Resource) => addToFavouriteProjects(resource)
+        ),
+        vscode.commands.registerCommand(
             "bigQueryResources.showResourceInConsole",
             (resource: Resource) => showResourceInConsole(resource)
         )
@@ -439,5 +443,14 @@ async function showResourceInConsole(resource: Resource) {
 
     if (typeof (uri) != 'undefined') {
         vscode.env.openExternal(uri);
+    }
+}
+
+async function addToFavouriteProjects(resource: Resource) {
+    // use memento API
+    const queryParameters = [];
+
+    if (resource instanceof BigQueryProject) {
+        console.log(resource.projectId)
     }
 }
