@@ -358,9 +358,6 @@ async function submitQuery(openBrowser: boolean): Promise<void> {
                 if (openBrowser) {
                     vscode.env.openExternal(jobUri);
                 }
-
-                const [rows] = await job.getQueryResults({ maxResults: 0 })
-
                 vscode.window
                     .showInformationMessage("Finished running query", "Open in Browser")
                     .then(selection => {
@@ -368,7 +365,9 @@ async function submitQuery(openBrowser: boolean): Promise<void> {
                             vscode.env.openExternal(jobUri);
                         }
                     });
-
+                const [rows] = await job.getQueryResults()
+                const panel = vscode.window.createWebviewPanel('queryResults.'+job.metadata.jobReference.jobId, 'Big Query results', vscode.ViewColumn.One, {});
+                panel.webview.html = getWebviewContentForBigQueryResults(job, queryOptions, rows);
                 return rows;
             } catch (error) {
                 vscode.window.showErrorMessage(error.message);
@@ -440,4 +439,59 @@ async function showResourceInConsole(resource: Resource) {
     if (typeof (uri) != 'undefined') {
         vscode.env.openExternal(uri);
     }
+}
+
+function getWebviewContentForBigQueryResults(job, queryOptions, rows): string {
+    let results = `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cat Coding</title>
+    </head>
+    <body>
+    `
+    // Query Info
+    let query = queryOptions.query.replace(/\n/gi, '<br>').replace(/ /gi, '&nbsp;')
+    results += `<h3>Query</h3>`
+    results += `<table>
+    <tr><td>Project</td><td>`+job.metadata.jobReference.projectId+`</td></tr>
+    <tr><td>Job ID</td><td>`+job.metadata.jobReference.jobId+`</td></tr>
+    <tr><td>Dry run</td><td>`+queryOptions.dryRun.toString()+`</td></tr>
+    <tr><td>Query</td><td>`+query+`</td></tr>
+    <table>
+    `
+
+    // Query Results
+    results += `<h3>Query Results</h3>`
+    if (0 === rows.length) {
+        results += '<p>No results</p>'
+    } else {
+        // table
+        results += '<table>'
+        // table head
+        results += '<tr>'
+        results += '<th>Row</th>'
+        for (const [key, value] of Object.entries(rows[0])) {
+            results += '<th>' + key + '</th>'
+        }
+        results += '</tr>\n'
+        // table body
+        let rowCount = 0
+        for (const row of rows) {
+            rowCount += 1
+            results += '<tr>'
+            results += '<th>'+rowCount.toString()+'</th>'
+            for (const value of Object.values(row)) {
+                results += '<td>' + value + '</td>'
+            }
+            results += '</tr>\n'
+        }
+        // table end
+        results += '</table>'
+    }
+    results += `
+    </body>
+    </html>`;
+    return results
 }
