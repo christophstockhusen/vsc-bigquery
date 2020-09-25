@@ -9,6 +9,7 @@ import { getJobUri } from './job';
 import { updateDiagnosticsCollection } from './diagnostics';
 import { DryRunResult, DryRunFailure, DryRunSuccess } from './dryRunResult';
 import { DryRunCache } from './dryRunCache';
+import { getWebviewContentForBigQueryResults } from './tablePreview';
 
 const languageId = 'BigQuery';
 let bqClient: BigQuery;
@@ -355,16 +356,26 @@ async function submitQuery(openBrowser: boolean): Promise<void> {
             try {
                 const [job] = await bqClient.createQueryJob(queryOptions);
                 const jobUri = await getJobUri(job);
-                const displayBigQueryJobResults = vscode.workspace
-                    .getConfiguration('bigquery')
-                    .get("displayBigQueryJobResults");
 
-                const [rows] = await job.getQueryResults()
+                const [rows] = await job.getQueryResults();
 
                 if (openBrowser) {
-                    if (displayBigQueryJobResults) {
-                        const panel = vscode.window.createWebviewPanel('queryResults.' + job.metadata.jobReference.jobId, 'Big Query results', vscode.ViewColumn.One, {});
-                        panel.webview.html = getWebviewContentForBigQueryResults(job, queryOptions, rows);
+                    const displayInWebView = vscode.workspace
+                        .getConfiguration('bigquery')
+                        .get("displayBigQueryJobResultsInWebview");
+
+                    if (displayInWebView) {
+                        const panel = vscode.window.createWebviewPanel('queryResults.' + job.metadata.jobReference.jobId,
+                            'BigQuery Results', 
+                            vscode.ViewColumn.Beside,
+                            {
+                                enableScripts: true
+                            });
+                        panel.webview.html = await getWebviewContentForBigQueryResults(bqClient, job, rows);
+
+                        panel.webview.postMessage({
+                            data: rows
+                        });
                     } else {
                         vscode.env.openExternal(jobUri);
                     }
@@ -448,59 +459,4 @@ async function showResourceInConsole(resource: Resource) {
     if (typeof (uri) != 'undefined') {
         vscode.env.openExternal(uri);
     }
-}
-
-function getWebviewContentForBigQueryResults(job, queryOptions, rows): string {
-    let results = `<!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Cat Coding</title>
-    </head>
-    <body>
-    `
-    // Query Info
-    let query = queryOptions.query.replace(/\n/gi, '<br>').replace(/ /gi, '&nbsp;')
-    results += `<h3>Query</h3>`
-    results += `<table>
-    <tr><td>Project</td><td>`+ job.metadata.jobReference.projectId + `</td></tr>
-    <tr><td>Job ID</td><td>`+ job.metadata.jobReference.jobId + `</td></tr>
-    <tr><td>Dry run</td><td>`+ queryOptions.dryRun.toString() + `</td></tr>
-    <tr><td>Query</td><td>`+ query + `</td></tr>
-    <table>
-    `
-
-    // Query Results
-    results += `<h3>Query Results</h3>`
-    if (0 === rows.length) {
-        results += '<p>No results</p>'
-    } else {
-        // table
-        results += '<table>'
-        // table head
-        results += '<tr>'
-        results += '<th>Row</th>'
-        for (const [key, value] of Object.entries(rows[0])) {
-            results += '<th>' + key + '</th>'
-        }
-        results += '</tr>\n'
-        // table body
-        let rowCount = 0
-        for (const row of rows) {
-            rowCount += 1
-            results += '<tr>'
-            results += '<th>' + rowCount.toString() + '</th>'
-            for (const value of Object.values(row)) {
-                results += '<td>' + value + '</td>'
-            }
-            results += '</tr>\n'
-        }
-        // table end
-        results += '</table>'
-    }
-    results += `
-    </body>
-    </html>`;
-    return results
 }
