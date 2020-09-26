@@ -18,7 +18,7 @@ table.tablePreview {
 
 table.tablePreview tr {
     border: solid;
-    border-width: 1px 0;
+    border-width: 0px 0;
 }
 
 table.tablePreview tr:first-child {
@@ -35,7 +35,7 @@ table.tablePreview th {
 }
 
 table.tablePreview th, table.tablePreview td {
-    padding: 1em;
+    padding: 0.5em;
 }
 
 table.tablePreview td.value {
