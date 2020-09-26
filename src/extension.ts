@@ -40,11 +40,11 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'extension.submitQuery',
-            () => submitQuery(false)
+            () => submitQuery(context, false)
         ),
         vscode.commands.registerCommand(
             'extension.submitQueryAndOpenBrowser',
-            () => submitQuery(true)
+            () => submitQuery(context, true)
         ),
         vscode.commands.registerCommand(
             'extension.dryRun',
@@ -323,7 +323,7 @@ async function dryRun(document: vscode.TextDocument): Promise<void> {
     updateDryRunItem();
 }
 
-async function submitQuery(openBrowser: boolean): Promise<void> {
+async function submitQuery(context: vscode.ExtensionContext, openBrowser: boolean): Promise<void> {
     const activeEditor = vscode.window.activeTextEditor;
     if (typeof activeEditor !== 'undefined') {
         let query: string;
@@ -371,7 +371,7 @@ async function submitQuery(openBrowser: boolean): Promise<void> {
                             {
                                 enableScripts: true
                             });
-                        panel.webview.html = await getWebviewContentForBigQueryResults(bqClient, job, rows);
+                        panel.webview.html = await getWebviewContentForBigQueryResults(context, panel, bqClient, job, rows);
 
                         panel.webview.postMessage({
                             data: rows

@@ -1,0 +1,43 @@
+table.jobInformation {
+    border-collapse: separate;
+    border-spacing: 0.75em 0.25em;
+}
+
+table.jobInformation td.key {
+    text-align: right;
+}
+
+table.jobInformation td.value {
+    font-family: monospace;
+}
+
+table.tablePreview {
+    border-collapse: collapse;
+    border-spacing: 0.75em 0.25em;
+}
+
+table.tablePreview tr {
+    border: solid;
+    border-width: 1px 0;
+}
+
+table.tablePreview tr:first-child {
+    border-top: none;
+  }
+
+table.tablePreview tr:last-child {
+    border-bottom: none;
+}
+
+table.tablePreview th {
+    font-weight: bold;
+    padding: 1em;
+}
+
+table.tablePreview th, table.tablePreview td {
+    padding: 1em;
+}
+
+table.tablePreview td.value {
+    font-family: monospace;
+}
