@@ -1,10 +1,31 @@
-import { BigQuery, Job } from "@google-cloud/bigquery";
+import { BigQuery, Job, Table } from "@google-cloud/bigquery";
 import { BigQueryTable } from "./bigqueryResources";
 import { getJobProject, getJobId, getJobLocation, getJobCreationTime, getJobStartTime, getJobEndTime, getJobTotalBytesProcessed, getJobDestinationTable } from './job';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-export async function getWebviewContentForBigQueryResults(context: vscode.ExtensionContext, panel: vscode.WebviewPanel, client: BigQuery, job: Job, rows: any[]): Promise<string> {
+export async function createJobPreview(context: vscode.ExtensionContext, client: BigQuery, job: Job): Promise<void> {
+    const [jobResult] = await job.get();
+    const panel = vscode.window.createWebviewPanel('queryResults.' + jobResult.metadata.jobReference.jobId,
+        'Job Information',
+        vscode.ViewColumn.Beside,
+        {
+            enableScripts: true
+        });
+    panel.webview.html = await getWebViewContentForJob(context, panel, client, job);
+}
+
+export async function createTablePreview(context: vscode.ExtensionContext, client: BigQuery, table: BigQueryTable): Promise<void> {
+    const panel = vscode.window.createWebviewPanel(`table.${table.projectId}:${table.datasetId}.${table.tableId}`,
+        'Table Information',
+        vscode.ViewColumn.Beside,
+        {
+            enableScripts: true
+        });
+    panel.webview.html = await getWebViewContentForTable(context, panel, client, table);
+}
+
+async function getWebViewContentForJob(context: vscode.ExtensionContext, panel: vscode.WebviewPanel, client: BigQuery, job: Job): Promise<string> {
     const cssPath = panel.webview.asWebviewUri(
         vscode.Uri.file(
             path.join(context.extensionPath, 'resources', 'webview.css')
@@ -17,11 +38,11 @@ export async function getWebviewContentForBigQueryResults(context: vscode.Extens
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Table Preview</title>
-                <link rel="stylesheet" href="${ cssPath }">
+                <link rel="stylesheet" href="${cssPath}">
             </head>
             <body>
                 <h1>Job Information</h1>
-                ${queryDescriptionTable(job)}
+                ${queryQueryInfoTable(job)}
                 <h1>Table Preview</h1>
                 ${await getTablePreview(client, getJobDestinationTable(job), 100)}
             </body>
@@ -30,7 +51,33 @@ export async function getWebviewContentForBigQueryResults(context: vscode.Extens
     return html;
 }
 
-function queryDescriptionTable(job: Job): string {
+async function getWebViewContentForTable(context: vscode.ExtensionContext, panel: vscode.WebviewPanel, client: BigQuery, table: BigQueryTable): Promise<string> {
+    const cssPath = panel.webview.asWebviewUri(
+        vscode.Uri.file(
+            path.join(context.extensionPath, 'resources', 'webview.css')
+        )
+    );
+
+    let html = `<!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Table Preview</title>
+                <link rel="stylesheet" href="${cssPath}">
+            </head>
+            <body>
+                <h1>Table Information</h1>
+                ${queryTableInfoTable(table)}
+                <h1>Table Preview</h1>
+                ${await getTablePreview(client, table, 100)}
+            </body>
+        </html>`
+
+    return html;
+}
+
+function queryQueryInfoTable(job: Job): string {
     let html =
         `<table class="jobInformation">
             <tr>
@@ -70,8 +117,34 @@ function queryDescriptionTable(job: Job): string {
     return html;
 }
 
+function queryTableInfoTable(table: BigQueryTable): string {
+    let html =
+        `<table class="jobInformation">
+            <tr>
+                <td class="key">Project ID</td>
+                <td class="value">${table.projectId}</td>
+            </tr>
+            <tr>
+                <td class="key">Dataset ID</td>
+                <td class="value">${table.datasetId}</td>
+            </tr>
+            <tr>
+                <td class="key">Table ID</td>
+                <td class="value">${table.tableId}</td>
+            </tr>
+        <table>`
+
+    return html;
+}
+
 async function getTablePreview(client: BigQuery, table: BigQueryTable, maxRows: number): Promise<string> {
     const bqTable = client.dataset(table.datasetId).table(table.tableId);
+
+    const [tableExists] = await bqTable.exists()
+    if (!tableExists) {
+        return "Table does not exist anymore."
+    }
+
     const [tableMetadata] = await bqTable.getMetadata();
     const schemaFields = tableMetadata.schema.fields;
     const [rows] = await bqTable.getRows({ maxResults: maxRows });
@@ -100,7 +173,7 @@ function rowToHtml(schemaFields: any[], row: any[]): string {
     const fields = schemaFields
         .map(f => f.name)
         .map(f => row[f])
-        .map(f => typeof(f) == 'object' ? (f ? f.value : "NULL") : f)
+        .map(f => typeof (f) == 'object' ? (f ? f.value : "NULL") : f)
 
-    return "<tr>" + fields.map(f => `<td class="value">${ f }</td>`).join("") + "</tr>";
+    return "<tr>" + fields.map(f => `<td class="value">${f}</td>`).join("") + "</tr>";
 }

@@ -141,6 +141,24 @@
                     "light": "resources/light/link-external.svg",
                     "dark": "resources/dark/link-external.svg"
                 }
+            },
+            {
+                "category": "BigQuery",
+                "command": "bigQueryResources.tableInfo",
+                "title": "Table Info",
+                "icon": {
+                    "light": "resources/light/info.svg",
+                    "dark": "resources/dark/info.svg"
+                }
+            },
+            {
+                "category": "BigQuery",
+                "command": "queryHistory.preview",
+                "title": "Job Preview",
+                "icon": {
+                    "light": "resources/light/info.svg",
+                    "dark": "resources/dark/info.svg"
+                }
             }
         ],
         "keybindings": [
@@ -200,6 +218,11 @@
                     "group": "inline"
                 },
                 {
+                    "command": "bigQueryResources.tableInfo",
+                    "when": "view == bigquery.resources && viewItem == table",
+                    "group": "inline"
+                },
+                {
                     "command": "queryHistory.showQueryInConsole",
                     "when": "view == bigquery.queries",
                     "group": "inline"
@@ -207,6 +230,11 @@
                 {
                     "command": "queryHistory.edit",
                     "when": "view == bigquery.queries",
+                    "group": "inline"
+                },
+                {
+                    "command": "queryHistory.preview",
+                    "when": "view == bigquery.queries && viewItem == query",
                     "group": "inline"
                 }
             ]

@@ -9,7 +9,7 @@ import { getJobUri } from './job';
 import { updateDiagnosticsCollection } from './diagnostics';
 import { DryRunResult, DryRunFailure, DryRunSuccess } from './dryRunResult';
 import { DryRunCache } from './dryRunCache';
-import { getWebviewContentForBigQueryResults } from './tablePreview';
+import { createJobPreview, createTablePreview } from './preview';
 
 const languageId = 'BigQuery';
 let bqClient: BigQuery;
@@ -120,6 +120,10 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             "bigQueryResources.showResourceInConsole",
             (resource: Resource) => showResourceInConsole(resource)
+        ),
+        vscode.commands.registerCommand(
+            "bigQueryResources.tableInfo",
+            (table: BigQueryTable) => createTablePreview(context, bqClient, table)
         )
     );
 
@@ -162,6 +166,13 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'queryHistory.showQueryInConsole',
             (query: Query) => showQueryInConsole(query)
+        ),
+        vscode.commands.registerCommand(
+            'queryHistory.preview',
+            (query: Query) => {
+                const job = bqClient.job(query.jobId);
+                createJobPreview(context, bqClient, job);
+            }
         )
     );
 
@@ -323,7 +334,7 @@ async function dryRun(document: vscode.TextDocument): Promise<void> {
     updateDryRunItem();
 }
 
-async function submitQuery(context: vscode.ExtensionContext, openBrowser: boolean): Promise<void> {
+async function submitQuery(context: vscode.ExtensionContext, showPreview: boolean): Promise<void> {
     const activeEditor = vscode.window.activeTextEditor;
     if (typeof activeEditor !== 'undefined') {
         let query: string;
@@ -359,30 +370,23 @@ async function submitQuery(context: vscode.ExtensionContext, openBrowser: boolea
 
                 const [rows] = await job.getQueryResults();
 
-                if (openBrowser) {
+                if (showPreview) {
                     const displayInWebView = vscode.workspace
                         .getConfiguration('bigquery')
                         .get("displayBigQueryJobResultsInWebview");
 
                     if (displayInWebView) {
-                        const panel = vscode.window.createWebviewPanel('queryResults.' + job.metadata.jobReference.jobId,
-                            'BigQuery Results', 
-                            vscode.ViewColumn.Beside,
-                            {
-                                enableScripts: true
-                            });
-                        panel.webview.html = await getWebviewContentForBigQueryResults(context, panel, bqClient, job, rows);
-
-                        panel.webview.postMessage({
-                            data: rows
-                        });
+                        createJobPreview(context, bqClient, job);
                     } else {
                         vscode.env.openExternal(jobUri);
                     }
                 }
                 vscode.window
-                    .showInformationMessage("Finished running query", "Open in Browser")
+                    .showInformationMessage("Finished running query", "Preview", "Open in Browser")
                     .then(selection => {
+                        if (selection === "Preview") {
+                            createJobPreview(context, bqClient, job);
+                        }
                         if (selection === "Open in Browser") {
                             vscode.env.openExternal(jobUri);
                         }

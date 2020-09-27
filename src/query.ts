@@ -8,6 +8,7 @@ export class Query extends vscode.TreeItem {
     projectId: string;
     location: string;
     id: string;
+    jobId: string;
     query: string;
     creationTime: number;
     jobStatus: JobStatus;
@@ -24,10 +25,12 @@ export class Query extends vscode.TreeItem {
         this.projectId = projectId;
         this.location = location;
         this.id = id;
+        this.jobId = id;
         this.query = query;
         this.creationTime = creationTime;
         this.label = query.replace(/[\n ]+/g, " ").substr(0, 30);
         this.jobStatus = jobStatus;
+        this.contextValue = "query";
     }
 
     get description(): string {
