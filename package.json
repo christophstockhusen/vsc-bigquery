@@ -197,6 +197,28 @@
             ]
         },
         "menus": {
+            "commandPalette": [
+                {
+                    "command": "bigQueryResources.showResourceInConsole",
+                    "when": "false"
+                },
+                {
+                    "command": "bigQueryResources.tableInfo",
+                    "when": "false"
+                },
+                {
+                    "command": "queryHistory.showQueryInConsole",
+                    "when": "false"
+                },
+                {
+                    "command": "queryHistory.edit",
+                    "when": "false"
+                },
+                {
+                    "command": "queryHistory.preview",
+                    "when": "false"
+                }
+            ],
             "editor/title": [
                 {
                     "command": "extension.submitQuery",
