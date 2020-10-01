@@ -8,7 +8,10 @@ export async function createJobPreview(context: vscode.ExtensionContext, client:
     const [jobResult] = await job.get();
     const panel = vscode.window.createWebviewPanel('queryResults.' + jobResult.metadata.jobReference.jobId,
         'Job Information',
-        vscode.ViewColumn.Beside,
+        { 
+            viewColumn: vscode.ViewColumn.Beside,
+            preserveFocus: false
+        },
         {
             enableScripts: true
         });
@@ -44,7 +47,7 @@ async function getWebViewContentForJob(context: vscode.ExtensionContext, panel: 
                 <h1>Job Information</h1>
                 ${queryQueryInfoTable(job)}
                 <h1>Table Preview</h1>
-                ${await getTablePreview(client, getJobDestinationTable(job), 100)}
+                ${await getTablePreview(getJobDestinationTable(job), 100)}
             </body>
         </html>`
 
@@ -70,7 +73,7 @@ async function getWebViewContentForTable(context: vscode.ExtensionContext, panel
                 <h1>Table Information</h1>
                 ${queryTableInfoTable(table)}
                 <h1>Table Preview</h1>
-                ${await getTablePreview(client, table, 100)}
+                ${await getTablePreview(table, 100)}
             </body>
         </html>`
 
@@ -141,10 +144,14 @@ function queryTableInfoTable(table: BigQueryTable): string {
     return html;
 }
 
-async function getTablePreview(client: BigQuery, table: BigQueryTable, maxRows: number): Promise<string> {
+async function getTablePreview(table: BigQueryTable, maxRows: number): Promise<string> {
+    const client = new BigQuery({
+        projectId: table.projectId
+    })
+
     const bqTable = client.dataset(table.datasetId).table(table.tableId);
 
-    const [tableExists] = await bqTable.exists()
+    const [tableExists] = await bqTable.exists();
     if (!tableExists) {
         return "Table does not exist anymore."
     }
@@ -186,7 +193,7 @@ function rowToHtml(schemaFields: any[], row: any[]): string {
 }
 
 function fieldToHtml(field: any): string {
-    if (typeof(field) != 'object') {
+    if (typeof (field) != 'object') {
         return String(field);
     }
 
@@ -199,7 +206,7 @@ function fieldToHtml(field: any): string {
     }
 
     const keys = Object.keys(field);
-    const tableRows = keys.map(k => field[k]).map(f => `<tr><td class="value">${ fieldToHtml(f) }</td></tr>`).join("")
+    const tableRows = keys.map(k => field[k]).map(f => `<tr><td class="value">${fieldToHtml(f)}</td></tr>`).join("")
 
     return `<table class="tablePreview"><tbody>${tableRows}</tbody></table>`
 }

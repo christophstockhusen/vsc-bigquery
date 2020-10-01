@@ -123,7 +123,9 @@ export function activate(context: vscode.ExtensionContext) {
         ),
         vscode.commands.registerCommand(
             "bigQueryResources.tableInfo",
-            (table: BigQueryTable) => createTablePreview(context, bqClient, table)
+            async (table: BigQueryTable) => {
+                createTablePreview(context, bqClient, table)
+            }
         )
     );
 
