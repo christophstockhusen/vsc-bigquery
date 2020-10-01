@@ -4,6 +4,7 @@ import { BigQuery } from '@google-cloud/bigquery';
 import { Resource } from '@google-cloud/resource';
 import { google, cloudresourcemanager_v1, serviceusage_v1 } from 'googleapis';
 import { auth, GoogleAuth, JWT, Compute, UserRefreshClient } from 'google-auth-library';
+import bigquery from '@google-cloud/bigquery/build/src/types';
 
 export class BigQueryResourceProvider implements vscode.TreeDataProvider<BigQueryResource> {
     private bqClient: BigQuery;

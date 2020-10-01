@@ -45,6 +45,15 @@
                     "type": "number",
                     "default": "200",
                     "description": "Time (in milliseconds) to wait after typing before dry run is performed."
+                },
+                "bigquery.displayBigQueryJobResultsInWebview": {
+                    "type": "boolean",
+                    "default": true,
+                    "enum": [
+                        true,
+                        false
+                    ],
+                    "description": "[EXPERIMENTAL] Will show job results in a WebView window."
                 }
             }
         },
@@ -132,6 +141,24 @@
                     "light": "resources/light/link-external.svg",
                     "dark": "resources/dark/link-external.svg"
                 }
+            },
+            {
+                "category": "BigQuery",
+                "command": "bigQueryResources.tableInfo",
+                "title": "Table Info",
+                "icon": {
+                    "light": "resources/light/info.svg",
+                    "dark": "resources/dark/info.svg"
+                }
+            },
+            {
+                "category": "BigQuery",
+                "command": "queryHistory.preview",
+                "title": "Job Preview",
+                "icon": {
+                    "light": "resources/light/info.svg",
+                    "dark": "resources/dark/info.svg"
+                }
             }
         ],
         "keybindings": [
@@ -170,6 +197,28 @@
             ]
         },
         "menus": {
+            "commandPalette": [
+                {
+                    "command": "bigQueryResources.showResourceInConsole",
+                    "when": "false"
+                },
+                {
+                    "command": "bigQueryResources.tableInfo",
+                    "when": "false"
+                },
+                {
+                    "command": "queryHistory.showQueryInConsole",
+                    "when": "false"
+                },
+                {
+                    "command": "queryHistory.edit",
+                    "when": "false"
+                },
+                {
+                    "command": "queryHistory.preview",
+                    "when": "false"
+                }
+            ],
             "editor/title": [
                 {
                     "command": "extension.submitQuery",
@@ -191,6 +240,11 @@
                     "group": "inline"
                 },
                 {
+                    "command": "bigQueryResources.tableInfo",
+                    "when": "view == bigquery.resources && viewItem == table",
+                    "group": "inline"
+                },
+                {
                     "command": "queryHistory.showQueryInConsole",
                     "when": "view == bigquery.queries",
                     "group": "inline"
@@ -198,6 +252,11 @@
                 {
                     "command": "queryHistory.edit",
                     "when": "view == bigquery.queries",
+                    "group": "inline"
+                },
+                {
+                    "command": "queryHistory.preview",
+                    "when": "view == bigquery.queries && viewItem == query",
                     "group": "inline"
                 }
             ]
@@ -216,20 +275,20 @@
         "prerelease": "npm version prerelease --preid=alpha"
     },
     "devDependencies": {
-        "@types/node": "^8.10.63",
+        "@types/node": "^8.10.64",
         "@types/sql-formatter": "^2.3.0",
         "@types/vscode": "^1.49.0",
-        "copy-webpack-plugin": "^6.1.0",
-        "ts-loader": "^8.0.3",
+        "copy-webpack-plugin": "^6.1.1",
+        "ts-loader": "^8.0.4",
         "tslint": "^5.16.0",
         "typescript": "^3.9.7",
-        "webpack": "^4.44.1",
+        "webpack": "^4.44.2",
         "webpack-cli": "^3.3.12"
     },
     "dependencies": {
-        "@google-cloud/bigquery": "^5.2.0",
+        "@google-cloud/bigquery": "^5.3.0",
         "@google-cloud/resource": "^1.2.1",
-        "google-auth-library": "^6.0.6",
+        "google-auth-library": "^6.1.0",
         "googleapis": "^55.0.0",
         "sql-formatter": "git+https://github.com/christophstockhusen/sql-formatter.git#bigquery"
     }
