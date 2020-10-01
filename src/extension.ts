@@ -373,16 +373,9 @@ async function submitQuery(context: vscode.ExtensionContext, showPreview: boolea
                 const [rows] = await job.getQueryResults();
 
                 if (showPreview) {
-                    const displayInWebView = vscode.workspace
-                        .getConfiguration('bigquery')
-                        .get("displayBigQueryJobResultsInWebview");
-
-                    if (displayInWebView) {
-                        createJobPreview(context, bqClient, job);
-                    } else {
-                        vscode.env.openExternal(jobUri);
-                    }
+                    createJobPreview(context, bqClient, job);   
                 }
+
                 vscode.window
                     .showInformationMessage("Finished running query", "Preview", "Open in Browser")
                     .then(selection => {
