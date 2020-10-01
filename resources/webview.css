@@ -18,16 +18,16 @@ table.tablePreview {
 
 table.tablePreview tr {
     border: solid;
-    border-width: 0px 0;
+    border-width: 1px 0;
 }
 
-table.tablePreview tr:first-child {
+/* table.tablePreview tr:first-child {
     border-top: none;
   }
 
 table.tablePreview tr:last-child {
     border-bottom: none;
-}
+} */
 
 table.tablePreview th {
     font-weight: bold;
@@ -40,4 +40,5 @@ table.tablePreview th, table.tablePreview td {
 
 table.tablePreview td.value {
     font-family: monospace;
+    vertical-align: top;
 }

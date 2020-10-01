@@ -80,39 +80,41 @@ async function getWebViewContentForTable(context: vscode.ExtensionContext, panel
 function queryQueryInfoTable(job: Job): string {
     let html =
         `<table class="jobInformation">
-            <tr>
-                <td class="key">Project ID</td>
-                <td class="value">${getJobProject(job).projectId}</td>
-            </tr>
-            <tr>
-                <td class="key">Job ID</td>
-                <td class="value">${getJobId(job)}</td>
-            </tr>
-            <tr>
-                <td class="key">Location</td>
-                <td class="value">${getJobLocation(job)}</td>
-            </tr>
-            <tr>
-                <td class="key">Creation Time</td>
-                <td class="value">${getJobCreationTime(job)}</td>
-            </tr>
-            <tr>
-                <td class="key">Start Time</td>
-                <td class="value">${getJobStartTime(job)}</td>
-            </tr>
-            <tr>
-                <td class="key">End Time</td>
-                <td class="value">${getJobEndTime(job)}</td>
-            </tr>
-            <tr>
-                <td class="key">Bytes Processed</td>
-                <td class="value">${getJobTotalBytesProcessed(job)}</td>
-            </tr>
-            <tr>
-                <td class="key">Destination Table</td>
-                <td class="value">${getJobDestinationTable(job).projectId}:${getJobDestinationTable(job).datasetId}.${getJobDestinationTable(job).tableId}</td>
-            </tr>
-        <table>`
+            <tbody>
+                <tr>
+                    <td class="key">Project ID</td>
+                    <td class="value">${getJobProject(job).projectId}</td>
+                </tr>
+                <tr>
+                    <td class="key">Job ID</td>
+                    <td class="value">${getJobId(job)}</td>
+                </tr>
+                <tr>
+                    <td class="key">Location</td>
+                    <td class="value">${getJobLocation(job)}</td>
+                </tr>
+                <tr>
+                    <td class="key">Creation Time</td>
+                    <td class="value">${getJobCreationTime(job)}</td>
+                </tr>
+                <tr>
+                    <td class="key">Start Time</td>
+                    <td class="value">${getJobStartTime(job)}</td>
+                </tr>
+                <tr>
+                    <td class="key">End Time</td>
+                    <td class="value">${getJobEndTime(job)}</td>
+                </tr>
+                <tr>
+                    <td class="key">Bytes Processed</td>
+                    <td class="value">${getJobTotalBytesProcessed(job)}</td>
+                </tr>
+                <tr>
+                    <td class="key">Destination Table</td>
+                    <td class="value">${getJobDestinationTable(job).projectId}:${getJobDestinationTable(job).datasetId}.${getJobDestinationTable(job).tableId}</td>
+                </tr>
+            </tbody>
+        </table>`
 
     return html;
 }
@@ -120,18 +122,20 @@ function queryQueryInfoTable(job: Job): string {
 function queryTableInfoTable(table: BigQueryTable): string {
     let html =
         `<table class="jobInformation">
-            <tr>
-                <td class="key">Project ID</td>
-                <td class="value">${table.projectId}</td>
-            </tr>
-            <tr>
-                <td class="key">Dataset ID</td>
-                <td class="value">${table.datasetId}</td>
-            </tr>
-            <tr>
-                <td class="key">Table ID</td>
-                <td class="value">${table.tableId}</td>
-            </tr>
+            <tbody>
+                <tr>
+                    <td class="key">Project ID</td>
+                    <td class="value">${table.projectId}</td>
+                </tr>
+                <tr>
+                    <td class="key">Dataset ID</td>
+                    <td class="value">${table.datasetId}</td>
+                </tr>
+                <tr>
+                    <td class="key">Table ID</td>
+                    <td class="value">${table.tableId}</td>
+                </tr>
+            </tbody>
         <table>`
 
     return html;
@@ -151,10 +155,14 @@ async function getTablePreview(client: BigQuery, table: BigQueryTable, maxRows: 
 
     let html = `
     <table class="tablePreview">
-        <tr>
-            ${schemaToHtml(schemaFields)}
-        </tr>
-        ${rowsToHtml(schemaFields, rows)}
+        <thead>
+            <tr>
+                ${schemaToHtml(schemaFields)}
+            </tr>
+        </thead>
+        <tbody>
+            ${rowsToHtml(schemaFields, rows)}
+        </tbody>
     </table>
     `
     return html;
@@ -173,7 +181,25 @@ function rowToHtml(schemaFields: any[], row: any[]): string {
     const fields = schemaFields
         .map(f => f.name)
         .map(f => row[f])
-        .map(f => typeof (f) == 'object' ? (f ? f.value : "NULL") : f)
 
-    return "<tr>" + fields.map(f => `<td class="value">${f}</td>`).join("") + "</tr>";
+    return "<tr>" + fields.map(f => `<td class="value">${fieldToHtml(f)}</td>`).join("") + "</tr>";
+}
+
+function fieldToHtml(field: any): string {
+    if (typeof(field) != 'object') {
+        return String(field);
+    }
+
+    if (!field) {
+        return "NULL";
+    }
+
+    if (field.value) {
+        return field.value;
+    }
+
+    const keys = Object.keys(field);
+    const tableRows = keys.map(k => field[k]).map(f => `<tr><td class="value">${ fieldToHtml(f) }</td></tr>`).join("")
+
+    return `<table class="tablePreview"><tbody>${tableRows}</tbody></table>`
 }
