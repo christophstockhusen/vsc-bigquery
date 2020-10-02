@@ -1,3 +1,5 @@
+import { formatBytes } from './byteFormatter';
+
 export abstract class DryRunResult {}
 
 export class DryRunSuccess extends DryRunResult {
@@ -13,19 +15,7 @@ export class DryRunSuccess extends DryRunResult {
     }
 
     private formatProcessedBytes(bytes: number): string {
-        const capacities = ["B", "KB", "MB", "GB", "TB", "PB"];
-        let n = +bytes;
-        let capacityIndex = 0;
-        for (let i = 0; i < capacities.length; i++) {
-            capacityIndex = i;
-            if (n < 1024) {
-                break;
-            } else {
-                n /= 1024;
-            }
-        }
-    
-        return `${parseFloat(n.toPrecision(2))} ${capacities[capacityIndex]}`
+        return formatBytes(bytes);
     }
 }
 

@@ -5,6 +5,7 @@ table.jobInformation {
 
 table.jobInformation td.key {
     text-align: right;
+    vertical-align: top;
 }
 
 table.jobInformation td.value {

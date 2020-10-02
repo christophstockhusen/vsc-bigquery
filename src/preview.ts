@@ -1,6 +1,7 @@
 import { BigQuery, Job, Table } from "@google-cloud/bigquery";
 import { BigQueryTable } from "./bigqueryResources";
 import { getJobProject, getJobId, getJobLocation, getJobCreationTime, getJobStartTime, getJobEndTime, getJobTotalBytesProcessed, getJobDestinationTable } from './job';
+import { formatBytes } from './byteFormatter';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -71,7 +72,7 @@ async function getWebViewContentForTable(context: vscode.ExtensionContext, panel
             </head>
             <body>
                 <h1>Table Information</h1>
-                ${queryTableInfoTable(table)}
+                ${await tableInfoTable(table)}
                 <h1>Table Preview</h1>
                 ${await getTablePreview(table, 100)}
             </body>
@@ -110,7 +111,7 @@ function queryQueryInfoTable(job: Job): string {
                 </tr>
                 <tr>
                     <td class="key">Bytes Processed</td>
-                    <td class="value">${getJobTotalBytesProcessed(job)}</td>
+                    <td class="value">${ formatBytes(getJobTotalBytesProcessed(job)) } ( ${getJobTotalBytesProcessed(job).toLocaleString() })</td>
                 </tr>
                 <tr>
                     <td class="key">Destination Table</td>
@@ -122,7 +123,16 @@ function queryQueryInfoTable(job: Job): string {
     return html;
 }
 
-function queryTableInfoTable(table: BigQueryTable): string {
+async function tableInfoTable(table: BigQueryTable): Promise<string> {
+    const client = new BigQuery({
+        projectId: table.projectId
+    })
+
+    const bqTable = client.dataset(table.datasetId).table(table.tableId);
+    console.log(bqTable);
+    const [metaData] = await bqTable.getMetadata();
+    console.log(metaData);
+
     let html =
         `<table class="jobInformation">
             <tbody>
@@ -138,10 +148,39 @@ function queryTableInfoTable(table: BigQueryTable): string {
                     <td class="key">Table ID</td>
                     <td class="value">${table.tableId}</td>
                 </tr>
+                <tr>
+                    <td class="key">Description</td>
+                    <td class="value">${ metaData.description ? metaData.description : "(none)" }</td>
+                </tr>
+                <tr>
+                    <td class="key">Rows</td>
+                    <td class="value">${ (+metaData.numRows).toLocaleString() }</td>
+                </tr>
+                <tr>
+                    <td class="key">Active Storage Size</td>
+                    <td class="value">${ formatBytes(metaData.numBytes) } (${ (+metaData.numBytes).toLocaleString() } Bytes)</td>
+                </tr>
+                <tr>
+                    <td class="key">Long Term Storage Size</td>
+                    <td class="value">${ formatBytes(metaData.numLongTermBytes) } (${ (+metaData.numLongTermBytes).toLocaleString() } Bytes)</td>
+                </tr>
+                <tr>
+                    <td class="key">Labels</td>
+                    <td class="value">${ metaData.labels ? labelTable(metaData.labels) : "(none)" }</td>
+                </tr>
             </tbody>
         <table>`
 
     return html;
+}
+
+function labelTable(labels: Map<string, string>): string {
+    const labelRows = Object.keys(labels)
+        .map(k => `<td class="key">${k}</td><td class="value">${ labels[k] }</td>`)
+        .map(td => `<tr>${ td }</tr>`)
+        .join("");
+
+    return `<table class="tablePreview">${ labelRows }</table>`;
 }
 
 async function getTablePreview(table: BigQueryTable, maxRows: number): Promise<string> {
