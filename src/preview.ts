@@ -176,6 +176,7 @@ async function tableInfoTable(table: BigQueryTable): Promise<string> {
 
 function labelTable(labels: Map<string, string>): string {
     const labelRows = Object.keys(labels)
+        .sort()
         .map(k => `<td class="key">${k}</td><td class="value">${ labels[k] }</td>`)
         .map(td => `<tr>${ td }</tr>`)
         .join("");
