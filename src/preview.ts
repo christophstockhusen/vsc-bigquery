@@ -1,5 +1,5 @@
 import { BigQuery, Job, Table } from "@google-cloud/bigquery";
-import { BigQueryTable } from "./bigqueryResources";
+import { BigQueryDataset, BigQueryTable } from "./bigqueryResources";
 import { getJobProject, getJobId, getJobLocation, getJobCreationTime, getJobStartTime, getJobEndTime, getJobTotalBytesProcessed, getJobDestinationTable } from './job';
 import { formatBytes } from './byteFormatter';
 import * as path from 'path';
@@ -17,6 +17,16 @@ export async function createJobPreview(context: vscode.ExtensionContext, client:
             enableScripts: true
         });
     panel.webview.html = await getWebViewContentForJob(context, panel, client, job);
+}
+
+export async function createDatasetPreview(context: vscode.ExtensionContext, client: BigQuery, dataset: BigQueryDataset): Promise<void> {
+    const panel = vscode.window.createWebviewPanel(`dataset.${dataset.projectId}:${dataset.datasetId}`,
+        'Dataset Information',
+        vscode.ViewColumn.Beside,
+        {
+            enableScripts: true
+        });
+    panel.webview.html = await getWebViewContentForDataset(context, panel, client, dataset);
 }
 
 export async function createTablePreview(context: vscode.ExtensionContext, client: BigQuery, table: BigQueryTable): Promise<void> {
@@ -41,7 +51,7 @@ async function getWebViewContentForJob(context: vscode.ExtensionContext, panel: 
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Table Preview</title>
+                <title>Job Information and Preview</title>
                 <link rel="stylesheet" href="${cssPath}">
             </head>
             <body>
@@ -53,6 +63,55 @@ async function getWebViewContentForJob(context: vscode.ExtensionContext, panel: 
         </html>`
 
     return html;
+}
+
+async function getWebViewContentForDataset(context: vscode.ExtensionContext, panel: vscode.WebviewPanel, client: BigQuery, dataset: BigQueryDataset): Promise<string> {
+    const cssPath = panel.webview.asWebviewUri(
+        vscode.Uri.file(
+            path.join(context.extensionPath, 'resources', 'webview.css')
+        )
+    );
+
+    let html = `<!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Dataset Information</title>
+                <link rel="stylesheet" href="${cssPath}">
+            </head>
+            <body>
+                <h1>Dataset Information</h1>
+                ${await datasetInfoTable(dataset)}
+            </body>
+        </html>`
+
+    return html;
+}
+
+async function datasetInfoTable(dataset: BigQueryDataset): Promise<string> {
+    const client = new BigQuery({
+        projectId: dataset.projectId
+    })
+
+    const bqDataset = client.dataset(dataset.datasetId);
+    const [metaData] = await bqDataset.getMetadata();
+
+    const keyValues: [string, string][] = [
+        ["Project ID", dataset.projectId],
+        ["Dataset ID", dataset.datasetId],
+        ["Description", metaData.description ? metaData.description : "(none)" ],
+        ["Location", metaData.location],
+        ["Creation Time", "" + new Date(+metaData.creationTime)],
+        ["Last Modified Time", "" + new Date(+metaData.lastModifiedTime)],
+        ["Default Table Expiration Time", metaData.defaultTableExpirationMs ? +metaData.defaultTableExpirationMs + " ms" : "(none)"],
+        ["Default Partition Expiration Time", metaData.defaultPartitionExpirationMs? +metaData.defaultPartitionExpirationMs + " ms" : "(none)"],
+        ["Labels", metaData.labels ? labelTable(metaData.labels) : "(none)" ]
+    ]
+
+    const rows = keyValues.map(t => keyValueToHtmlRow(t[0], t[1]))
+
+    return `<table class="jobInformation"><tbody>` + rows.join("") + `</tbody></table>`
 }
 
 async function getWebViewContentForTable(context: vscode.ExtensionContext, panel: vscode.WebviewPanel, client: BigQuery, table: BigQueryTable): Promise<string> {
@@ -119,6 +178,10 @@ async function tableInfoTable(table: BigQueryTable): Promise<string> {
         ["Dataset ID", table.datasetId],
         ["Table ID", table.tableId],
         ["Description", metaData.description ? metaData.description : "(none)" ],
+        ["Location", metaData.location],
+        ["Creation Time", "" + new Date(+metaData.creationTime)],
+        ["Last Modified Time", "" + new Date(+metaData.lastModifiedTime)],
+        ["Expiration Time", metaData.expirationTime ? new Date(+metaData.expirationTime) : "(none)"],
         ["Rows", (+metaData.numRows).toLocaleString() ],
         ["Partitioning", isPartitioned(metaData) ? partitioningTableHtml(metaData) : "(none)" ],
         ["Clustering", metaData.clustering ? metaData.clustering.fields.join(", ") : "(none)"],

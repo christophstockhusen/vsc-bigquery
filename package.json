@@ -135,6 +135,15 @@
             },
             {
                 "category": "BigQuery",
+                "command": "bigQueryResources.datasetInfo",
+                "title": "Dataset Info",
+                "icon": {
+                    "light": "resources/light/info.svg",
+                    "dark": "resources/dark/info.svg"
+                }
+            },
+            {
+                "category": "BigQuery",
                 "command": "bigQueryResources.tableInfo",
                 "title": "Table Info",
                 "icon": {
@@ -194,6 +203,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "bigQueryResources.datasetInfo",
+                    "when": "false"
+                },
+                {
                     "command": "bigQueryResources.tableInfo",
                     "when": "false"
                 },
@@ -226,8 +239,8 @@
             ],
             "view/item/context": [
                 {
-                    "command": "bigQueryResources.showResourceInConsole",
-                    "when": "view == bigquery.resources && viewItem != field",
+                    "command": "bigQueryResources.datasetInfo",
+                    "when": "view == bigquery.resources && viewItem == dataset",
                     "group": "inline"
                 },
                 {
@@ -248,6 +261,11 @@
                 {
                     "command": "queryHistory.preview",
                     "when": "view == bigquery.queries && viewItem == query",
+                    "group": "inline"
+                },
+                {
+                    "command": "bigQueryResources.showResourceInConsole",
+                    "when": "view == bigquery.resources && viewItem != field",
                     "group": "inline"
                 }
             ]

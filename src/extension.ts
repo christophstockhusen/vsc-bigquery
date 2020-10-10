@@ -9,7 +9,7 @@ import { getJobUri } from './job';
 import { updateDiagnosticsCollection } from './diagnostics';
 import { DryRunResult, DryRunFailure, DryRunSuccess } from './dryRunResult';
 import { DryRunCache } from './dryRunCache';
-import { createJobPreview, createTablePreview } from './preview';
+import { createJobPreview, createDatasetPreview, createTablePreview } from './preview';
 
 const languageId = 'BigQuery';
 let bqClient: BigQuery;
@@ -120,6 +120,12 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             "bigQueryResources.showResourceInConsole",
             (resource: Resource) => showResourceInConsole(resource)
+        ),
+        vscode.commands.registerCommand(
+            "bigQueryResources.datasetInfo",
+            async (dataset: BigQueryDataset) => {
+                createDatasetPreview(context, bqClient, dataset)
+            }
         ),
         vscode.commands.registerCommand(
             "bigQueryResources.tableInfo",
