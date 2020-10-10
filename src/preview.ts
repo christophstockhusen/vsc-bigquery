@@ -82,45 +82,28 @@ async function getWebViewContentForTable(context: vscode.ExtensionContext, panel
 }
 
 function queryQueryInfoTable(job: Job): string {
-    let html =
-        `<table class="jobInformation">
-            <tbody>
-                <tr>
-                    <td class="key">Project ID</td>
-                    <td class="value">${getJobProject(job).projectId}</td>
-                </tr>
-                <tr>
-                    <td class="key">Job ID</td>
-                    <td class="value">${getJobId(job)}</td>
-                </tr>
-                <tr>
-                    <td class="key">Location</td>
-                    <td class="value">${getJobLocation(job)}</td>
-                </tr>
-                <tr>
-                    <td class="key">Creation Time</td>
-                    <td class="value">${getJobCreationTime(job)}</td>
-                </tr>
-                <tr>
-                    <td class="key">Start Time</td>
-                    <td class="value">${getJobStartTime(job)}</td>
-                </tr>
-                <tr>
-                    <td class="key">End Time</td>
-                    <td class="value">${getJobEndTime(job)}</td>
-                </tr>
-                <tr>
-                    <td class="key">Bytes Processed</td>
-                    <td class="value">${ formatBytes(getJobTotalBytesProcessed(job)) } ( ${getJobTotalBytesProcessed(job).toLocaleString() })</td>
-                </tr>
-                <tr>
-                    <td class="key">Destination Table</td>
-                    <td class="value">${getJobDestinationTable(job).projectId}:${getJobDestinationTable(job).datasetId}.${getJobDestinationTable(job).tableId}</td>
-                </tr>
-            </tbody>
-        </table>`
+    const keyValues: [string, string][] = [
+        ["Project ID", getJobProject(job).projectId],
+        ["Job ID", getJobId(job)],
+        ["Location", getJobLocation(job)],
+        ["Creation Time", "" + getJobCreationTime(job)],
+        ["Start Time", "" + getJobStartTime(job)],
+        ["End Time", "" + getJobEndTime(job)],
+        ["Bytes Processed", `${ formatBytes(getJobTotalBytesProcessed(job)) } ( ${getJobTotalBytesProcessed(job).toLocaleString() })`],
+        ["Destination Table", `${ getJobDestinationTable(job).projectId }:${ getJobDestinationTable(job).datasetId }.${ getJobDestinationTable(job).tableId }`]
+    ]
 
-    return html;
+    const rows = keyValues.map(t => keyValueToHtmlRow(t[0], t[1]))
+
+    return `<table class="jobInformation"><tbody>` + rows.join("") + `</tbody></table>`
+}
+
+function keyValueToHtmlRow(key: string, value: string): string {
+    return "" + 
+    `<tr>
+        <td class="key">${ key }</td>
+        <td class="value">${ value }</td>
+    </tr>`
 }
 
 async function tableInfoTable(table: BigQueryTable): Promise<string> {
@@ -129,56 +112,49 @@ async function tableInfoTable(table: BigQueryTable): Promise<string> {
     })
 
     const bqTable = client.dataset(table.datasetId).table(table.tableId);
-    console.log(bqTable);
     const [metaData] = await bqTable.getMetadata();
-    console.log(metaData);
 
-    let html =
-        `<table class="jobInformation">
-            <tbody>
-                <tr>
-                    <td class="key">Project ID</td>
-                    <td class="value">${table.projectId}</td>
-                </tr>
-                <tr>
-                    <td class="key">Dataset ID</td>
-                    <td class="value">${table.datasetId}</td>
-                </tr>
-                <tr>
-                    <td class="key">Table ID</td>
-                    <td class="value">${table.tableId}</td>
-                </tr>
-                <tr>
-                    <td class="key">Description</td>
-                    <td class="value">${ metaData.description ? metaData.description : "(none)" }</td>
-                </tr>
-                <tr>
-                    <td class="key">Rows</td>
-                    <td class="value">${ (+metaData.numRows).toLocaleString() }</td>
-                </tr>
-                <tr>
-                    <td class="key">Active Storage Size</td>
-                    <td class="value">${ formatBytes(metaData.numBytes) } (${ (+metaData.numBytes).toLocaleString() } Bytes)</td>
-                </tr>
-                <tr>
-                    <td class="key">Long Term Storage Size</td>
-                    <td class="value">${ formatBytes(metaData.numLongTermBytes) } (${ (+metaData.numLongTermBytes).toLocaleString() } Bytes)</td>
-                </tr>
-                <tr>
-                    <td class="key">Labels</td>
-                    <td class="value">${ metaData.labels ? labelTable(metaData.labels) : "(none)" }</td>
-                </tr>
-            </tbody>
-        <table>`
+    const keyValues: [string, string][] = [
+        ["Project ID", table.projectId],
+        ["Dataset ID", table.datasetId],
+        ["Table ID", table.tableId],
+        ["Description", metaData.description ? metaData.description : "(none)" ],
+        ["Rows", (+metaData.numRows).toLocaleString() ],
+        ["Partitioning", isPartitioned(metaData) ? partitioningTableHtml(metaData) : "(none)" ],
+        ["Clustering", metaData.clustering ? metaData.clustering.fields.join(", ") : "(none)"],
+        ["Active Storage Size", `${ formatBytes(metaData.numBytes) } ( ${ (+metaData.numBytes).toLocaleString() } Bytes)`],
+        ["Long Term Storage Size", `${ formatBytes(metaData.numLongTermBytes) } ( ${ (+metaData.numLongTermBytes).toLocaleString() } Bytes)`],
+        ["Labels", metaData.labels ? labelTable(metaData.labels) : "(none)" ]
+    ]
 
-    return html;
+    const rows = keyValues.map(t => keyValueToHtmlRow(t[0], t[1]))
+
+    return `<table class="jobInformation"><tbody>` + rows.join("") + `</tbody></table>`
+}
+
+function isPartitioned(metaData: any): boolean {
+    return metaData.timePartitioning || metaData.rangePartitioning;
+}
+
+function partitioningTableHtml(metaData: any): string {
+    let partitioningType = "Unknown Partitioning Type";
+
+    if (metaData.timePartitioning) {
+        partitioningType = `Time Partitioning (${ metaData.timePartitioning.type }) on ${ metaData.timePartitioning.field }`;
+    }
+
+    if (metaData.rangePartitioning) {
+        let range = metaData.rangePartitioning.range;
+        partitioningType = `Range Partitioning (Start: ${ range.start }, Interval: ${ range.interval }, End: ${ range.end }) on ${ metaData.rangePartitioning.field }`;
+    }
+
+    return partitioningType;
 }
 
 function labelTable(labels: Map<string, string>): string {
     const labelRows = Object.keys(labels)
         .sort()
-        .map(k => `<td class="key">${k}</td><td class="value">${ labels[k] }</td>`)
-        .map(td => `<tr>${ td }</tr>`)
+        .map(k => keyValueToHtmlRow(k, labels[k]))
         .join("");
 
     return `<table class="tablePreview">${ labelRows }</table>`;
