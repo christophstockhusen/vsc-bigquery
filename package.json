@@ -9,7 +9,7 @@
     },
     "version": "0.0.2-alpha.31",
     "engines": {
-        "vscode": "^1.49.0"
+        "vscode": "^1.50.0"
     },
     "categories": [
         "Programming Languages"
