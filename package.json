@@ -17,7 +17,7 @@
     "icon": "resources/BigQuery.png",
     "license": "MIT",
     "activationEvents": [
-        "*"
+        "onStartupFinished"
     ],
     "repository": {
         "url": "https://github.com/christophstockhusen/vcs-bigquery"
@@ -291,12 +291,12 @@
         "ts-loader": "^8.0.4",
         "tslint": "^5.16.0",
         "typescript": "^3.9.7",
-        "webpack": "^4.44.2",
-        "webpack-cli": "^3.3.12"
+        "webpack": "^5.73.0",
+        "webpack-cli": "^4.9.2"
     },
     "dependencies": {
-        "@google-cloud/bigquery": "^5.3.0",
-        "@google-cloud/resource": "^1.2.1",
+        "@google-cloud/bigquery": "^6.0.0",
+        "@google-cloud/resource-manager": "^3.2.0",
         "google-auth-library": "^6.1.1",
         "googleapis": "^55.0.0",
         "sql-formatter": "git+https://github.com/christophstockhusen/sql-formatter.git#bigquery"

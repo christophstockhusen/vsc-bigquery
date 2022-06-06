@@ -1,19 +1,19 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { BigQuery } from '@google-cloud/bigquery';
-import { Resource } from '@google-cloud/resource';
+import { ProjectsClient } from '@google-cloud/resource-manager';
 import { google, cloudresourcemanager_v1, serviceusage_v1 } from 'googleapis';
 import { auth, GoogleAuth, JWT, Compute, UserRefreshClient } from 'google-auth-library';
 import bigquery from '@google-cloud/bigquery/build/src/types';
 
 export class BigQueryResourceProvider implements vscode.TreeDataProvider<BigQueryResource> {
     private bqClient: BigQuery;
-    private resourceClient: Resource;
+    private projectsClient: ProjectsClient;
     private cloudResourceManager: cloudresourcemanager_v1.Cloudresourcemanager;
 
     constructor(private workspaceRoot: string) {
         this.bqClient = new BigQuery();
-        this.resourceClient = new Resource();
+        this.projectsClient = new ProjectsClient();
         this.cloudResourceManager = google.cloudresourcemanager('v1');
     }
 
@@ -38,9 +38,9 @@ export class BigQueryResourceProvider implements vscode.TreeDataProvider<BigQuer
     }
 
     private async fetchProjectIds(): Promise<string[]> {
-        return this.resourceClient.getProjects()
+        return this.projectsClient.searchProjects()
             .then(ps => ps[0])
-            .then(ps => ps.map(p => p.id))
+            .then(ps => ps.map(p => p.projectId))
     }
 
     getChildren(element?: BigQueryResource): vscode.ProviderResult<BigQueryResource[]> {
@@ -82,7 +82,7 @@ export class BigQueryResourceProvider implements vscode.TreeDataProvider<BigQuer
     }
 }
 
-class BigQueryResource extends vscode.TreeItem {
+export class BigQueryResource extends vscode.TreeItem {
     projectId: string;
 
     constructor(

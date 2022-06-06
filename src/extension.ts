@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { BigQuery, Job } from '@google-cloud/bigquery';
-import { Resource } from '@google-cloud/resource';
-import { BigQueryResourceProvider, BigQueryProject, BigQueryDataset, BigQueryTable } from './bigqueryResources';
+import { ProjectsClient } from '@google-cloud/resource-manager';
+import { BigQueryResourceProvider, BigQueryProject, BigQueryDataset, BigQueryTable, BigQueryResource } from './bigqueryResources';
 import { BigQueryFormatter } from './formatter';
 import { QueryHistoryProvider } from './queryHistoryProvider';
 import { Query } from './query';
@@ -13,7 +13,7 @@ import { createJobPreview, createDatasetPreview, createTablePreview } from './pr
 
 const languageId = 'BigQuery';
 let bqClient: BigQuery;
-let resourceClient: Resource;
+let projectsClient: ProjectsClient;
 
 let projectItem: vscode.StatusBarItem;
 let dryRunItem: vscode.StatusBarItem;
@@ -65,7 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     bqClient = new BigQuery();
-    resourceClient = new Resource();
+    projectsClient = new ProjectsClient();
 
     projectItem = createProjectItem();
     dryRunItem = createDryRunItem();
@@ -119,7 +119,7 @@ export function activate(context: vscode.ExtensionContext) {
         ),
         vscode.commands.registerCommand(
             "bigQueryResources.showResourceInConsole",
-            (resource: Resource) => showResourceInConsole(resource)
+            (resource: BigQueryResource) => showResourceInConsole(resource)
         ),
         vscode.commands.registerCommand(
             "bigQueryResources.datasetInfo",
@@ -214,10 +214,10 @@ function setProjectCommand(): void {
         ignoreFocusOut: false,
     }
 
-    resourceClient.getProjects()
+    projectsClient.searchProjects()
         .then(p => p[0])
-        .then(ps => ps.map(p => p.id))
-        .then(ps => vscode.window.showQuickPick(ps))
+        .then(ps => ps.map(p => p.projectId))
+        .then(id => vscode.window.showQuickPick(id))
         .then(p => {
             if (typeof (p) !== 'undefined') {
                 setCurrentProjectId(p);
@@ -428,7 +428,7 @@ async function showQueryInConsole(query: Query) {
     vscode.env.openExternal(query.resourceUri);
 }
 
-async function showResourceInConsole(resource: Resource) {
+async function showResourceInConsole(resource: BigQueryResource) {
     const queryParameters = [];
 
     const currentProjectId = getCurrentProjectId();
