@@ -19,7 +19,8 @@ A Visual Studio Code extension for developing [BigQuery SQL](https://cloud.googl
 ### Prerequisites
 
 - [gcloud CLI is installed](https://cloud.google.com/sdk/docs/install-sdk)
-- [Application Default Credentials are set](https://cloud.google.com/sdk/gcloud/reference/auth/application-default)
+- [User Credentials are set](https://cloud.google.com/sdk/gcloud/reference/auth/login), e.g. via `gcloud auth login`
+- [Application Default Credentials are set](https://cloud.google.com/sdk/gcloud/reference/auth/application-default), e.g. via `gcloud auth application-default login`
 
 ### Installation of Extension
 
