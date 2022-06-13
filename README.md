@@ -16,7 +16,14 @@ A Visual Studio Code extension for developing [BigQuery SQL](https://cloud.googl
 
 ## Installation
 
-Installation via the Visual Studio Code Marketplace is not yet available. Sorry for that. However, the manual installation is not that complicated:
+### Prerequisites
+
+- [gcloud CLI is installed](https://cloud.google.com/sdk/docs/install-sdk)
+- [Application Default Credentials are set](https://cloud.google.com/sdk/gcloud/reference/auth/application-default)
+
+### Installation of Extension
+
+Installation via the Visual Studio Code Marketplace is not yet available. Sorry for that. However, manual installation is not that complicated:
 - Download the latest VSIX file from [GitHub](https://github.com/christophstockhusen/vsc-bigquery/releases).
 - Press `CTRL-Shift-P` and select `Extensions: Install from VSIX...` (type `ext vsix`).
 - Select the downloaded VSIX file.
