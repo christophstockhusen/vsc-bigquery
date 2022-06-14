@@ -7,7 +7,7 @@
         "name": "Christoph Stockhusen",
         "email": "mail@christophstockhusen.de"
     },
-    "version": "0.0.2-alpha.35",
+    "version": "0.0.2-alpha.36",
     "engines": {
         "vscode": "^1.68.0"
     },
@@ -292,7 +292,7 @@
         "watch": "webpack --watch --mode development",
         "package": "webpack --mode production --devtool hidden-source-map",
         "compile-tests": "tsc -p . --outDir out",
-		"watch-tests": "tsc -p . -w --outDir out",
+        "watch-tests": "tsc -p . -w --outDir out",
         "postversion": "git push && git push --tags",
         "echo-version": "echo $npm_package_version",
         "prerelease": "npm version prerelease --preid=alpha"
