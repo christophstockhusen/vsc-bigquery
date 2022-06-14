@@ -117,6 +117,15 @@
             },
             {
                 "category": "BigQuery",
+                "command": "queryHistory.refreshHistory",
+                "title": "Refresh Query History",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
+                }
+            },
+            {
+                "category": "BigQuery",
                 "command": "queryHistory.edit",
                 "title": "Edit",
                 "icon": {
@@ -233,7 +242,12 @@
             "view/title": [
                 {
                     "command": "bigQueryResources.refreshAllResources",
-                    "when": "view == bigquery",
+                    "when": "view == bigquery.resources",
+                    "group": "navigation"
+                },
+                {
+                    "command": "queryHistory.refreshHistory",
+                    "when": "view == bigquery.queries",
                     "group": "navigation"
                 }
             ],

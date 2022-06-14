@@ -181,6 +181,10 @@ export function activate(context: vscode.ExtensionContext) {
                 const job = bqClient.job(query.jobId);
                 createJobPreview(context, bqClient, job);
             }
+        ),
+        vscode.commands.registerCommand(
+            'queryHistory.refreshHistory',
+            () => queryHistoryProvider.refreshHistory()
         )
     );
 
