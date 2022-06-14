@@ -2,6 +2,11 @@
 
 A Visual Studio Code extension for developing [BigQuery SQL](https://cloud.google.com/bigquery/). 
 
+<p align="center">
+  <img src="assets/main_window.png">
+</p>
+
+
 ## Features 
 
 - Syntax highlighting.
