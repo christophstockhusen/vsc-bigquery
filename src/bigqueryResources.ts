@@ -91,14 +91,8 @@ export class BigQueryResource extends vscode.TreeItem {
     ) {
         super(label, collapsibleState);
         this.projectId = label;
-    }
-
-    get tooltip(): string {
-        return this.label;
-    }
-
-    get description(): string {
-        return "";
+        this.tooltip = label;
+        this.description = "";
     }
 }
 
@@ -107,10 +101,7 @@ export class BigQueryProject extends BigQueryResource {
         public readonly projectId: string
     ) {
         super(projectId)
-    }
-
-    get contextValue(): string {
-        return "project";
+        this.contextValue = "project";
     }
 
     iconPath = {
@@ -126,10 +117,7 @@ export class BigQueryDataset extends BigQueryResource {
         public readonly datasetId: string
     ) {
         super(datasetId)
-    }
-
-    get contextValue(): string {
-        return "dataset";
+        this.contextValue = "dataset";
     }
 
     iconPath = {
@@ -145,10 +133,7 @@ export class BigQueryTable extends BigQueryResource {
         public readonly tableId: string
     ) {
         super(tableId)
-    }
-
-    get contextValue(): string {
-        return "table";
+        this.contextValue = "table";
     }
 
     iconPath = {
@@ -166,14 +151,8 @@ export class BigQueryTableField extends BigQueryResource {
         public readonly dataType: string
     ) {
         super(fieldName, vscode.TreeItemCollapsibleState.None)
-    }
-
-    get contextValue(): string {
-        return "field";
-    }
-
-    get description(): string {
-        return this.dataType;
+        this.contextValue = "field";
+        this.description = dataType;
     }
 
     iconPath = {
