@@ -2,19 +2,15 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { BigQuery } from '@google-cloud/bigquery';
 import { ProjectsClient } from '@google-cloud/resource-manager';
-import { google, cloudresourcemanager_v1, serviceusage_v1 } from 'googleapis';
-import { auth, GoogleAuth, JWT, Compute, UserRefreshClient } from 'google-auth-library';
-import bigquery from '@google-cloud/bigquery/build/src/types';
+import { GoogleAuth } from 'google-auth-library';
 
 export class BigQueryResourceProvider implements vscode.TreeDataProvider<BigQueryResource> {
     private bqClient: BigQuery;
     private projectsClient: ProjectsClient;
-    private cloudResourceManager: cloudresourcemanager_v1.Cloudresourcemanager;
 
     constructor(private workspaceRoot: string) {
         this.bqClient = new BigQuery();
         this.projectsClient = new ProjectsClient();
-        this.cloudResourceManager = google.cloudresourcemanager('v1');
     }
 
     private _onDidChangeTreeData: vscode.EventEmitter<BigQueryResource | undefined> = new vscode.EventEmitter<BigQueryResource | undefined>()
