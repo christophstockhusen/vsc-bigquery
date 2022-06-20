@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { JobStatus } from './job';
 import * as path from 'path';
-import * as fs from 'fs';
 
 export class Query extends vscode.TreeItem {
     label: string;
