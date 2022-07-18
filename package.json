@@ -298,7 +298,7 @@
         "prerelease": "npm version prerelease --preid=alpha"
     },
     "devDependencies": {
-        "@types/node": "16.x",
+        "@types/node": "18.x",
         "@types/sql-formatter": "^2.3.0",
         "@types/vscode": "^1.68.0",
         "copy-webpack-plugin": "^6.2.1",
